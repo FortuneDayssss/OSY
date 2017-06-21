@@ -7,6 +7,7 @@
 %endmacro
 
 DA_32       EQU	4000h
+DA_LIMIT_4K EQU	8000h
 
 DA_DPL0     EQU	  00h	; DPL = 0
 DA_DPL1     EQU	  20h	; DPL = 1
@@ -30,3 +31,10 @@ DA_386TSS	EQU	  89h	; 可用 386 任务状态段类型值
 DA_386CGate	EQU	  8Ch	; 386 调用门类型值
 DA_386IGate	EQU	  8Eh	; 386 中断门类型值
 DA_386TGate	EQU	  8Fh	; 386 陷阱门类型值
+
+; 分页常量
+PG_P		EQU	1	; 页存在属性位
+PG_RWR		EQU	0	; R/W 属性位值, 读/执行
+PG_RWW		EQU	2	; R/W 属性位值, 读/写/执行
+PG_USS		EQU	0	; U/S 属性位值, 系统级
+PG_USU		EQU	4	; U/S 属性位值, 用户级
