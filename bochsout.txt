@@ -32,7 +32,7 @@
 00000000000i[      ]   Sound support: no
 00000000000i[      ]   USB support: UHCI
 00000000000i[      ]   VGA extension support: vbe
-00000000000i[MEM0  ] allocated memory at 0x7fc89c667010. after alignment, vector=0x7fc89c668000
+00000000000i[MEM0  ] allocated memory at 0x7f99426ba010. after alignment, vector=0x7f99426bb000
 00000000000i[MEM0  ] 32.00MB
 00000000000i[MEM0  ] mem block size = 0x00020000, blocks=256
 00000000000i[MEM0  ] rom at 0xfffe0000/131072 ('bochsfiles/BIOS-bochs-latest')
@@ -43,7 +43,7 @@
 00000000000i[DEV   ] PIIX3 PCI-to-ISA bridge present at device 1, function 0
 00000000000i[PLUGIN] init_dev of 'cmos' plugin device by virtual method
 00000000000i[CMOS  ] Using local time for initial clock
-00000000000i[CMOS  ] Setting initial clock to: Wed Jun 21 06:31:18 2017 (time0=1498026678)
+00000000000i[CMOS  ] Setting initial clock to: Wed Jun 21 06:50:03 2017 (time0=1498027803)
 00000000000i[PLUGIN] init_dev of 'dma' plugin device by virtual method
 00000000000i[DMA   ] channel 4 used by cascade
 00000000000i[PLUGIN] init_dev of 'pic' plugin device by virtual method
@@ -158,7 +158,7 @@
 00000322260i[BIOS  ] ram_end=32MB
 00000362770i[BIOS  ] Found 1 cpu(s)
 00000376974i[BIOS  ] bios_table_addr: 0x000fa498 end=0x000fcc00
-00000613316i[XGUI  ] charmap update. Font is 9 x 16
+00000608680i[XGUI  ] charmap update. Font is 9 x 16
 00000704769i[PCI   ] i440FX PMC write to PAM register 59 (TLB Flush)
 00001032698i[P2ISA ] PCI IRQ routing: PIRQA# set to 0x0b
 00001032717i[P2ISA ] PCI IRQ routing: PIRQB# set to 0x09
@@ -194,27 +194,27 @@
 00001532106i[BXVGA ] VBE known Display Interface b0c0
 00001532138i[BXVGA ] VBE known Display Interface b0c5
 00001535063i[VBIOS ] VBE Bios $Id: vbe.c,v 1.65 2014/07/08 18:02:25 vruppert Exp $
-00002486396i[XGUI  ] charmap update. Font is 9 x 16
 00014040191i[BIOS  ] Booting from 0000:7c00
-00096812000i[      ] Ctrl-C detected in signal handler.
-00096812000i[      ] dbg: Quit
-00096812000i[CPU0  ] CPU is in protected mode (active)
-00096812000i[CPU0  ] CS.mode = 32 bit
-00096812000i[CPU0  ] SS.mode = 32 bit
-00096812000i[CPU0  ] EFER   = 0x00000000
-00096812000i[CPU0  ] | EAX=60000018  EBX=00000000  ECX=00000014  EDX=534d4150
-00096812000i[CPU0  ] | ESP=000903bf  EBP=00007d24  ESI=00000000  EDI=00000080
-00096812000i[CPU0  ] | IOPL=0 id vip vif ac vm rf nt of df if tf sf zf af PF cf
-00096812000i[CPU0  ] | SEG sltr(index|ti|rpl)     base    limit G D
-00096812000i[CPU0  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 0 1
-00096812000i[CPU0  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 0 1
-00096812000i[CPU0  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 0 1
-00096812000i[CPU0  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 0 1
-00096812000i[CPU0  ] |  FS:0000( 0005| 0|  0) 00000000 0000ffff 0 0
-00096812000i[CPU0  ] |  GS:0018( 0003| 0|  0) 000b8000 0000ffff 0 0
-00096812000i[CPU0  ] | EIP=000903d5 (000903d5)
-00096812000i[CPU0  ] | CR0=0x60000011 CR2=0x00000000
-00096812000i[CPU0  ] | CR3=0x00000000 CR4=0x00000000
-00096812000i[CMOS  ] Last time is 1498026702 (Wed Jun 21 06:31:42 2017)
-00096812000i[XGUI  ] Exit
-00096812000i[SIM   ] quit_sim called with exit code 0
+00021818388i[XGUI  ] charmap update. Font is 9 x 16
+00117454540i[      ] Ctrl-C detected in signal handler.
+00117454540i[      ] dbg: Quit
+00117454540i[CPU0  ] CPU is in protected mode (active)
+00117454540i[CPU0  ] CS.mode = 32 bit
+00117454540i[CPU0  ] SS.mode = 32 bit
+00117454540i[CPU0  ] EFER   = 0x00000000
+00117454540i[CPU0  ] | EAX=60000018  EBX=00000000  ECX=00000014  EDX=534d4150
+00117454540i[CPU0  ] | ESP=000903bf  EBP=00007d1c  ESI=00000000  EDI=00000080
+00117454540i[CPU0  ] | IOPL=0 id vip vif ac vm rf nt of df if tf sf zf af PF cf
+00117454540i[CPU0  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00117454540i[CPU0  ] |  CS:0008( 0001| 0|  0) 00000000 000fffff 0 1
+00117454540i[CPU0  ] |  DS:0010( 0002| 0|  0) 00000000 000fffff 0 1
+00117454540i[CPU0  ] |  SS:0010( 0002| 0|  0) 00000000 000fffff 0 1
+00117454540i[CPU0  ] |  ES:0010( 0002| 0|  0) 00000000 000fffff 0 1
+00117454540i[CPU0  ] |  FS:0000( 0005| 0|  0) 00000000 0000ffff 0 0
+00117454540i[CPU0  ] |  GS:0018( 0003| 0|  0) 000b8000 0000ffff 0 0
+00117454540i[CPU0  ] | EIP=000903d5 (000903d5)
+00117454540i[CPU0  ] | CR0=0x60000011 CR2=0x00000000
+00117454540i[CPU0  ] | CR3=0x00000000 CR4=0x00000000
+00117454540i[CMOS  ] Last time is 1498027832 (Wed Jun 21 06:50:32 2017)
+00117454540i[XGUI  ] Exit
+00117454540i[SIM   ] quit_sim called with exit code 0
