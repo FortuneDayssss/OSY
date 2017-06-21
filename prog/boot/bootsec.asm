@@ -59,8 +59,9 @@ SETUP_SEGMENT_NOT_FULL:
     add     cx,     di
     xor     ax,     ax
     mov     al,     cl
-    shl     al,     2
-    shr     al,     2
+;    shl     al,     2
+;    shr     al,     2
+    and     al,     00111111b
     cmp     al,     20
     jc     SETUP_SECTOR_IN_CYLINDER_NOT_FINISHED
     add     cx,     0000000001000000b
@@ -111,8 +112,9 @@ SYS_SEGMENT_NOT_FULL:
     add     cx,     di
     xor     ax,     ax
     mov     al,     cl
-    shl     al,     2
-    shr     al,     2
+;    shl     al,     2
+;    shr     al,     2
+    and     al,     00111111b
     cmp     al,     20
     jc     SYS_SECTOR_IN_CYLINDER_NOT_FINISHED
     add     cx,     0000000001000000b
