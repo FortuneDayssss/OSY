@@ -1,0 +1,25 @@
+###############################################################
+# bochsrc.bxrc file for Finix.
+###############################################################
+
+
+megs: 32
+
+
+#romimage: file=/usr/local/share/bochs/BIOS-bochs-latest
+romimage: file=bochsfiles/BIOS-bochs-latest
+#vgaromimage: file=/usr/share/bochs/VGABIOS-lgpl-latest
+vgaromimage: file=bochsfiles/VGABIOS-lgpl-latest
+
+
+floppya: 1_44=a.img, status=inserted
+
+boot: floppy
+
+
+log: bochsout.txt
+
+
+mouse: enabled=0
+
+keyboard: keymap=bochsfiles/keymaps/x11-pc-us.map
