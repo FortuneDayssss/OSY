@@ -1,4 +1,4 @@
-ENTRYPOINT	= 0x00030400
+ENTRYPOINT	= 0x00010000
 ENTRYOFFSET	= 0x00000000
 
 ASM		= nasm
@@ -11,7 +11,8 @@ LDFLAGS		= -s -Ttext $(ENTRYPOINT) -m elf_i386
 
 OSBOOT		= boot/bootsec.bin boot/setup.bin
 OSKERNEL	= kernel.bin
-OBJS		= init/main.o
+OBJS		= kernel/kernel.o \
+				init/main.o
 
 .PHONY: everything final image clean realclean disasm all buildimg
 
@@ -42,6 +43,9 @@ boot/setup.bin: boot/setup.asm boot/include/macro.inc
 
 $(OSKERNEL): $(OBJS)
 	$(LD) $(LDFLAGS) -o $(OSKERNEL) $(OBJS)
+
+kernel/kernel.o: kernel/kernel.asm
+	$(ASM) $(ASMKFLAGS) -o $@ $<
 
 init/main.o: init/main.c
 	$(CC) $(CFLAGS) -o $@ $<

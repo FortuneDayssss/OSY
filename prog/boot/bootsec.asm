@@ -6,7 +6,7 @@ STACK_TOP       equ     0ff00h
 SETUP_SEC_START equ     2
 SETUP_SEC_NUM   equ     3
 SYS_SEC_START   equ     5
-SYS_SEC_NUM     equ     5
+SYS_SEC_NUM     equ     10
 SETUP_ADDR      equ     0000h
 
 org     00007c00h
