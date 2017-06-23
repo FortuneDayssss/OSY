@@ -130,9 +130,10 @@ SYS_SECTOR_IN_CYLINDER_NOT_FINISHED:
     sub     si,     di
     jmp     READ_SYS_LOOP
 READ_SYS_OVER:
-;----------------------------------------------------------
-
-
+;--------------kill motor-------------------------------------------
+    mov     dx,     03f2h
+    mov     al,     0
+    out     dx,     al
 
 PRINT_BOOT_SUCCESS:
     mov     ah,     03h
