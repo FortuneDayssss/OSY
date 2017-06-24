@@ -21,7 +21,6 @@ LABEL_GDT:
     LABEL_DESC_MEMC:    Descriptor  00000000h,      0fffffh,    DA_C + DA_32
     LABEL_DESC_MEMD:    Descriptor  00000000h,      0fffffh,    DA_DRW + DA_32
     LABEL_DESC_VIDEO:   Descriptor  000b8000h,      0ffffh,     DA_DRW
-    LABEL_DESC_DATA:    Descriptor  00000000h,      0fffffh,    DA_DRW
     LABEL_DESC_PDIR:    Descriptor  PAGE_DIR_BASE,  4096,       DA_DRW
     LABEL_DESC_PTBL:    Descriptor  PAGE_TBL_BASE,  1023,       DA_DRW | DA_LIMIT_4K
 GDT_LEN         equ     $ - LABEL_GDT
@@ -30,7 +29,6 @@ GDT_PTR         dw      GDT_LEN - 1
 SELECTOR_MEMC   equ     LABEL_DESC_MEMC - LABEL_GDT
 SELECTOR_MEMD   equ     LABEL_DESC_MEMD - LABEL_GDT
 SELECTOR_VIDEO  equ     LABEL_DESC_VIDEO - LABEL_GDT
-SELECTOR_DATA   equ     LABEL_DESC_DATA - LABEL_GDT
 SELECTOR_PDIR   equ     LABEL_DESC_PDIR - LABEL_GDT
 SELECTOR_PTBL   equ     LABEL_DESC_PTBL - LABEL_GDT
 
@@ -58,14 +56,6 @@ CHECK_MEM_LOOP:
 CHECK_MEM_FAIL:
     mov dword       [MCR_NUMBER],   0
 CHECK_MEM_SUCCESS:
-    xor     eax,    eax
-    mov     ax,     cs
-    shl     eax,    4
-    add     ax,     MEM_DATA
-    mov word    [LABEL_DESC_DATA + 2],  ax
-    shr     eax,    16
-    mov byte    [LABEL_DESC_DATA + 4],  al
-    mov byte    [LABEL_DESC_DATA + 7],  ah
 
     xor     eax,    eax
     mov     ax,     ds
@@ -249,6 +239,13 @@ INIT_PAGE_TBL_LOOP:
     mov     cr0,    eax
     jmp     PAGING_OK
 PAGING_OK:
+    ;ds = es = MEMD
+    mov     ax,     SELECTOR_MEMD
+    mov     es,     ax
+
+;record memdata address
+    mov     eax,    MEM_DATA
+    push    eax
 
 ;jump to kernel code
     jmp     00010000h
