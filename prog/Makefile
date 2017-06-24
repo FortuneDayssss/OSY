@@ -15,7 +15,8 @@ OBJS		= kernel/kernel.o \
 				kernel/global.o \
 				init/main.o \
 				init/init.o \
-				lib/string.o
+				lib/string.o \
+				lib/print.o
 
 .PHONY: everything final image clean realclean disasm all buildimg
 
@@ -60,4 +61,7 @@ init/main.o: init/main.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 lib/string.o: lib/string.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+lib/print.o: lib/print.c
 	$(CC) $(CFLAGS) -o $@ $<

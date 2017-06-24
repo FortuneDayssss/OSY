@@ -15,3 +15,6 @@ TSS         tss;
 
 //process
 //TODO
+
+//screen
+int dispPos = 0;

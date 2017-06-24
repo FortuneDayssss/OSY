@@ -18,4 +18,7 @@ extern TSS         tss;
 //process
 //TODO
 
+//screen
+extern int dispPos;
+
 #endif
