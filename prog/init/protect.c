@@ -68,7 +68,7 @@ void init_8259A(){
 
 void init_interrupt(){
     init_8259A();
-
+    //todo: init idt
 }
 
 void init_tss(){
