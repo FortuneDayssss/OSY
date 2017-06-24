@@ -160,7 +160,7 @@ Load_Kernel_Program_Loop:
 
 	;prgmHeader = prgmHeader + prgmHeaderSize(= nextPrgmHeader)
     mov     ebx,    [ebp - 8]
-    mov     eax,    [ebp - 4];/////////////////////////////////////////////////
+    mov     eax,    [ebp - 4];
     add     ebx,    eax
     mov     [ebp - 8],  ebx
 	
@@ -209,7 +209,7 @@ Load_Kernel_Section_Continue:
 
     ;sectHeader = sectHeader + sectHeaderSize(= nextSectHeader)
     mov     ebx,    [ebp - 16]
-    mov     eax,    [ebp - 12];//////////////////////////////////////
+    mov     eax,    [ebp - 12];
     add     ebx,    eax
     mov     [ebp - 16], ebx
 	
@@ -250,16 +250,10 @@ INIT_PAGE_TBL_LOOP:
     jmp     PAGING_OK
 PAGING_OK:
 
-;test: jump to kernel.asm
+;jump to kernel code
     jmp     00010000h
 
-TEST_LOOP:
-    jmp     TEST_LOOP
 
-
-
-
-;code from OSTOY
 ;-------------------function--------------------------------------------
 ;void ASM_Memcpy(byte4 rsrcAddr, byte4 opAddr, byte4 size)
 ;ds:rsrcAddr => es:opAddr
