@@ -1,5 +1,7 @@
 #include "protect.h"
 #include "type.h"
+#include "global.h"
+#include "string.h"
 
 void out_byte(uint16_t port, uint8_t value){
     __asm__ __volatile__(
@@ -28,6 +30,26 @@ uint8_t in_byte(uint16_t port){
     return data;
 }
 
+void* seg2phyaddr(uint16_t selector){
+    Descriptor* descriptor = &gdt[selector >> 3];
+    return (void*)((descriptor -> base_high << 24) 
+        | (descriptor -> base_mid << 16) 
+        | (descriptor ->base_low));
+}
+
+void* vir2phyaddr(void* selector_base, void* offset){
+    return (void*)((uint32_t)selector_base + (uint32_t)offset);
+}
+
+void init_descriptor(Descriptor* descriptor, uint32_t base, uint32_t limit, uint16_t attribute){
+    descriptor -> limit_low = limit & 0x0FFFF;
+    descriptor -> base_low = base & 0x0FFFF;
+    descriptor -> base_mid = (base >> 16) & 0x0FF;
+    descriptor -> base_high = (base >> 24) & 0x0FF;
+    descriptor -> attr1 = attribute & 0xFF;
+    descriptor -> limit_high_attr2 = ((limit >> 16) & 0x0F) | (attribute >> 8) & 0xF0;
+}
+
 void init_8259A(){
     out_byte(INT_M_CTL, 0x11);                  //icw1 => master8259A
     out_byte(INT_S_CTL, 0x11);                  //icw1 => slave8259A
@@ -46,5 +68,17 @@ void init_8259A(){
 
 void init_interrupt(){
     init_8259A();
-    
+
+}
+
+void init_tss(){
+    memset(&tss, 0, sizeof(TSS));
+    tss.ss0 = SELECTOR_MEMD;
+    init_descriptor(
+        &gdt[INDEX_TSS], 
+        (uint32_t)vir2phyaddr(seg2phyaddr(SELECTOR_MEMD), &tss), 
+        sizeof(tss) - 1, 
+        DA_386TSS
+    );
+    tss.iobase = sizeof(tss);
 }

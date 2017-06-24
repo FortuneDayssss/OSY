@@ -20,7 +20,7 @@ LABEL_GDT:
     LABEL_DESC_DUMMY:   Descriptor  0,              0,          0
     LABEL_DESC_MEMC:    Descriptor  00000000h,      0fffffh,    DA_C | DA_32 | DA_LIMIT_4K
     LABEL_DESC_MEMD:    Descriptor  00000000h,      0fffffh,    DA_DRW | DA_32 | DA_LIMIT_4K
-    LABEL_DESC_VIDEO:   Descriptor  000b8000h,      0ffffh,     DA_DRW
+    LABEL_DESC_VIDEO:   Descriptor  000b8000h,      0ffffh,     DA_DRW | DA_DPL3
 GDT_LEN         equ     $ - LABEL_GDT
 GDT_PTR         dw      GDT_LEN - 1
                 dd      0

@@ -5,6 +5,7 @@ extern init_kernel
 
 global _start
 
+%include "asm/macro.inc"
 [section .bss]
 StackSpace  resb    4*1024
 StackTop:
@@ -18,6 +19,12 @@ _start:
     sgdt    [gdt_ptr]
     call    init_kernel
     lgdt    [gdt_ptr]
+
+    jmp     SELECTOR_MEMC:NEW_GDT_OK
+NEW_GDT_OK:
+    xor     eax,    eax
+    mov     ax,     SELECTOR_TSS
+    ltr     ax
     ;todo
 
 test_loop:

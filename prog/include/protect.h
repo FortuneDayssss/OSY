@@ -49,13 +49,24 @@ typedef struct{
 	uint16_t    iobase;
 }TSS;
 
-//GDT Selector
+//GDT index
 #define INDEX_DUMMY     0
 #define INDEX_MEMC      1
 #define INDEX_MEMD      2
 #define INDEX_VIDEO     3
 #define INDEX_TSS       4
 #define INDEX_LDT_FIRST 5
+
+//GDT selector
+#define	SELECTOR_DUMMY		0
+#define	SELECTOR_MEMC		0x08
+#define	SELECTOR_MEMD		0x10
+#define	SELECTOR_VIDEO		(0x18 + 3)
+#define	SELECTOR_TSS		0x20
+#define SELECTOR_LDT_FIRST	0x28
+
+//LDT
+#define LDT_SIZE	2
 
 /* 描述符类型值说明 */
 #define	DA_32			0x4000	/* 32 位段				*/
@@ -121,5 +132,6 @@ typedef struct{
 #define	INT_S_CTLMASK	0xA1	/* setting bits in this port disables ints   <Slave>  */
 
 void init_interrupt();
+void init_tss();
 
 #endif
