@@ -74,6 +74,38 @@ void printInt32(uint32_t n){
 
 }
 
-void printInt16(uint16_t n);
+void printInt16(uint16_t n){
+	uint32_t temp;
+	char c;
+	for(int i = 3; i >= 0; i--){
+		temp = n >> (i * 4);
+		temp &= 15;
+		c = (char)(temp);
+		if(c <= 9){
+			c += '0';
+			printChar(&c);
+		}
+		else if (c < 16){
+			c = 'A' + (c - 10);
+			printChar(&c);
+		}
+	}
+}
 
-void printInt8(uint8_t n);
+void printInt8(uint8_t n){
+	uint32_t temp;
+	char c;
+	for(int i = 1; i >= 0; i--){
+		temp = n >> (i * 4);
+		temp &= 15;
+		c = (char)(temp);
+		if(c <= 9){
+			c += '0';
+			printChar(&c);
+		}
+		else if (c < 16){
+			c = 'A' + (c - 10);
+			printChar(&c);
+		}
+	}
+}

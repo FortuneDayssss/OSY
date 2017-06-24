@@ -1,6 +1,7 @@
 #include "type.h"
 #include "global.h"
 #include "print.h"
+#include "protect.h"
 #include "string.h"
 
 //memory data
@@ -34,6 +35,15 @@ void init_kernel(){
     uint32_t* gdt_base_ptr = (uint32_t*)(&gdt_ptr[2]);
     *gdt_limit_ptr = GDT_SIZE * sizeof(Descriptor) - 1;
     *gdt_base_ptr = (uint32_t)&gdt;
+
+    //init idt
+    uint16_t* idt_limit_ptr = (uint16_t*)(&idt_ptr[0]);
+    uint32_t* idt_base_ptr = (uint32_t*)(&idt_ptr[2]);
+    *idt_limit_ptr = IDT_SIZE * sizeof(Gate) - 1;
+    *idt_base_ptr = (uint32_t)&idt;
+    init_interrupt();
+
+
 
 
 }

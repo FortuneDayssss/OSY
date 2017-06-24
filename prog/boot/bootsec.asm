@@ -1,13 +1,17 @@
-BOOTSEC_SEG     equ     0000h
-SETUP_SEG       equ     9000h
-SYS_SEG         equ     5000h
-STACK_SEG       equ     9000h
-STACK_TOP       equ     0ff00h
-SETUP_SEC_START equ     2
-SETUP_SEC_NUM   equ     3
-SYS_SEC_START   equ     5
-SYS_SEC_NUM     equ     10
-SETUP_ADDR      equ     0000h
+BOOTSEC_SEG         equ     0000h
+SETUP_SEG           equ     9000h
+SYS_SEG             equ     5000h
+STACK_SEG           equ     9000h
+STACK_TOP           equ     0ff00h
+SETUP_SEC_START     equ     2
+SETUP_SEC_NUM       equ     3
+SYS_SEC_START       equ     5
+SYS_SEC_NUM         equ     14
+SETUP_ADDR          equ     0000h
+BLOCK_PER_SEG       equ     128
+BLOCK_PER_CYLINDER  equ     18
+CYLINDER_PER_HEAD   equ     80
+HEAD_PER_FLOPPY     equ     2
 
 org     00007c00h
 
@@ -30,6 +34,22 @@ COPY_BOOTSEC_LOOP:
     jmp     8000h:COPY_BOOTSEC_OK
 
 COPY_BOOTSEC_OK:
+    xor     al,     al
+    
+
+
+
+
+
+    jmp     SETUP_SEG:SETUP_ADDR
+
+
+;---------------------------------------------------------------------------------------
+
+
+
+
+
     mov     esi,    SETUP_SEC_NUM
     mov     ax,     SETUP_SEG
     mov     es,     ax
@@ -162,11 +182,13 @@ PRINT_BOOT_SUCCESS:
 
 
 ;----------data-------------------------
+HEAD:       db      0
+CYLINDER:   db      0
+SECTOR:     db      0
 
 MSG1:
     db      "boot success!"
     db      0dh,    0ah
-
 MSG1_LEN    equ     $ - MSG1
 
 BOOT_FLAG:

@@ -15,8 +15,9 @@ OBJS		= kernel/kernel.o \
 				kernel/global.o \
 				init/main.o \
 				init/init.o \
+				init/protect.o \
 				lib/string.o \
-				lib/print.o
+				lib/print.o 
 
 .PHONY: everything final image clean realclean disasm all buildimg
 
@@ -37,7 +38,7 @@ realclean:
 buildimg:
 	dd if=boot/bootsec.bin of=../a.img bs=512 count=1 conv=notrunc
 	dd if=boot/setup.bin of=../a.img bs=512 count=3 seek=1 conv=notrunc
-	dd if=kernel.bin of=../a.img bs=512 count=10 seek=4 conv=notrunc
+	dd if=kernel.bin of=../a.img bs=512 count=20 seek=4 conv=notrunc
 
 boot/bootsec.bin: boot/bootsec.asm
 	$(ASM) $(ASMBFLAGS) -o $@ $<
@@ -58,6 +59,9 @@ init/init.o: init/init.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 init/main.o: init/main.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+init/protect.o: init/protect.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 lib/string.o: lib/string.c
