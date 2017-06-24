@@ -6,13 +6,16 @@ CC		= gcc
 LD		= ld
 ASMBFLAGS	= -I boot/include/
 ASMKFLAGS	= -I include/ -f elf
-CFLAGS		= -I include/ -c -fno-builtin -m32 -O0
+CFLAGS		= -I include/ -c -fno-builtin -m32 -O0 -std=c99
 LDFLAGS		= -s -Ttext $(ENTRYPOINT) -m elf_i386
 
 OSBOOT		= boot/bootsec.bin boot/setup.bin
 OSKERNEL	= kernel.bin
 OBJS		= kernel/kernel.o \
-				init/main.o
+				kernel/global.o \
+				init/main.o \
+				init/init.o \
+				lib/string.o
 
 .PHONY: everything final image clean realclean disasm all buildimg
 
@@ -47,5 +50,14 @@ $(OSKERNEL): $(OBJS)
 kernel/kernel.o: kernel/kernel.asm
 	$(ASM) $(ASMKFLAGS) -o $@ $<
 
+kernel/global.o: kernel/global.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+init/init.o: init/init.c
+	$(CC) $(CFLAGS) -o $@ $<
+
 init/main.o: init/main.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+lib/string.o: lib/string.c
 	$(CC) $(CFLAGS) -o $@ $<

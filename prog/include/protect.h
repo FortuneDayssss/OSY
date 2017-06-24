@@ -1,25 +1,25 @@
 #ifndef _PROTECT_H__
 #define _PROTECT_H__
-#include "integer.h"
+#include "type.h"
 
-struct Descriptor{
+typedef struct{
     uint16_t    limit_low;
     uint16_t    base_low;
     uint8_t     base_mid;
     uint8_t     attr1;
     uint8_t     limit_high_attr2;
     uint8_t     base_high;
-};
+}Descriptor;
 
-struct Gate{
+typedef struct{
     uint16_t    offset_low;
     uint16_t    selector;
     uint8_t     dcount;
     uint8_t     attr;
     uint16_t    offset_high;
-};
+}Gate;
 
-struct TSS{
+typedef struct{
     uint32_t    backlink;
 	uint32_t    esp0;
 	uint32_t    ss0;
@@ -47,7 +47,7 @@ struct TSS{
 	uint32_t    ldt;
 	uint16_t    trap;
 	uint16_t    iobase;
-}
+}TSS;
 
 //GDT Selector
 #define INDEX_DUMMY     0
