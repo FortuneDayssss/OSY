@@ -136,10 +136,12 @@ READ_SYS_OVER:
     out     dx,     al
 
 PRINT_BOOT_SUCCESS:
+    ;get cursor position
     mov     ah,     03h
     xor     bh,     bh
     int     10h
 
+    ;print message
     mov     cx,     MSG1_LEN
     mov     bx,     0007h
     mov     ax,     cs
@@ -151,6 +153,10 @@ PRINT_BOOT_SUCCESS:
     mov     cx,     0706h
     int     13h
 
+    ;hide cursor
+    mov     ah,     01h
+    mov     cx,     0706h
+    int     10h
 
     jmp     SETUP_SEG:SETUP_ADDR
 

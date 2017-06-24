@@ -24,6 +24,16 @@ void init_kernel(){
             upRollScreen();
     }
 
+    //move gdt
+    memcpy(
+        &gdt,
+        (void*)(*((uint32_t*)(&gdt_ptr[2]))),
+        *((uint16_t*)(&gdt_ptr[0])) + 1
+    );
+    uint16_t* gdt_limit_ptr = (uint16_t*)(&gdt_ptr[0]);
+    uint32_t* gdt_base_ptr = (uint32_t*)(&gdt_ptr[2]);
+    *gdt_limit_ptr = GDT_SIZE * sizeof(Descriptor) - 1;
+    *gdt_base_ptr = (uint32_t)&gdt;
 
 
 }

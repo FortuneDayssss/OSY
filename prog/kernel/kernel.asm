@@ -17,6 +17,7 @@ _start:
     mov     esp,    StackTop
     sgdt    [gdt_ptr]
     call    init_kernel
+    lgdt    [gdt_ptr]
     ;todo
 
 test_loop:
