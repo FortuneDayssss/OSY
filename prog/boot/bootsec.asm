@@ -1,17 +1,31 @@
-BOOTSEC_SEG         equ     0000h
-SETUP_SEG           equ     9000h
-SYS_SEG             equ     5000h
-STACK_SEG           equ     9000h
-STACK_TOP           equ     0ff00h
-SETUP_SEC_START     equ     2
-SETUP_SEC_NUM       equ     3
-SYS_SEC_START       equ     5
-SYS_SEC_NUM         equ     14
-SETUP_ADDR          equ     0000h
-BLOCK_PER_SEG       equ     128
-BLOCK_PER_CYLINDER  equ     18
-CYLINDER_PER_HEAD   equ     80
-HEAD_PER_FLOPPY     equ     2
+BOOTSEC_SEG             equ     0000h
+SETUP_SEG               equ     9000h
+KERNEL_SEG              equ     5000h
+STACK_SEG               equ     9000h
+STACK_TOP               equ     0ff00h
+
+KERNEL_ADDR             equ     0000h           ;00050000 => kernel elf
+SETUP_ADDR              equ     0000h           ;00090000 => setup
+
+SEC_PER_SEG             equ     128
+FLOOPPY_DRIVE           equ     0
+
+SEC_PER_CYLINDER_PLUS_1 equ     19
+CYLINDER_PER_HEAD       equ     80
+HEAD_PER_FLOPPY         equ     2
+
+SETUP_START_HEAD        equ     0
+SETUP_START_CYLINDER    equ     0
+SETUP_START_SEC         equ     2
+SETUP_SEC_NUM           equ     3
+
+KERNEL_START_HEAD       equ     0
+KERNEL_START_CYLINDER   equ     0
+KERNEL_START_SEC        equ     5
+KERNEL_SEC_NUM          equ     30
+
+
+
 
 org     00007c00h
 
@@ -33,123 +47,119 @@ COPY_BOOTSEC_LOOP:
     loop    COPY_BOOTSEC_LOOP
     jmp     8000h:COPY_BOOTSEC_OK
 
-COPY_BOOTSEC_OK:
-    xor     al,     al
-    
+COPY_BOOTSEC_OK:   
 
-
-
-
-
-    jmp     SETUP_SEG:SETUP_ADDR
-
-
-;---------------------------------------------------------------------------------------
-
-
-
-
-
-    mov     esi,    SETUP_SEC_NUM
+;-----------load setup sectors------------------------------------------------------------
+    mov     al,     SETUP_START_HEAD
+    mov     [HEAD], al
+    mov     al,     SETUP_START_CYLINDER
+    mov     [CYLINDER], al
+    mov     al,     SETUP_START_SEC
+    mov     [SECTOR],   al
+    xor     eax,    eax
     mov     ax,     SETUP_SEG
-    mov     es,     ax
-    mov     bx,     0
-    mov     dx,     0
-    mov     cx,     SETUP_SEC_START
-       
-READ_SETUP_LOOP:
-    test    esi,    esi
-    jz      READ_SETUP_OVER
-    xor     eax,    eax
-    mov     al,     19
-    sub     al,     cl
-    cmp     eax,    esi
-    jc      SETUP_SEC_NUM_IN_CYLINDER_LOW_THAN_REMAIN
-    mov     ax,     si
-SETUP_SEC_NUM_IN_CYLINDER_LOW_THAN_REMAIN:
-    mov     di,     ax
-    mov     ah,     02h
-    int     13h
-    add     bx,     512
-    jnc     SETUP_SEGMENT_NOT_FULL
-    mov     ax,     es
-    add     ax,     1000h
-    mov     es,     ax
-SETUP_SEGMENT_NOT_FULL:
-    add     cx,     di
-    xor     ax,     ax
-    mov     al,     cl
-;    shl     al,     2
-;    shr     al,     2
-    and     al,     00111111b
-    cmp     al,     20
-    jc     SETUP_SECTOR_IN_CYLINDER_NOT_FINISHED
-    add     cx,     0000000001000000b
-    sub     cx,     18
-    mov     ax,     cx
-    shr     ax,     6
-    cmp     ax,     81
-    jc      SETUP_CYLINDER_IN_HEAD_NOT_FINISHED
-    add     dh,     1
-    sub     cx,     0001010000000000b
-SETUP_CYLINDER_IN_HEAD_NOT_FINISHED:
-SETUP_SECTOR_IN_CYLINDER_NOT_FINISHED:
-    sub     si,     di
-    jmp     READ_SETUP_LOOP
-READ_SETUP_OVER:
+    shl     eax,    4
+    add     eax,    SETUP_ADDR
+    mov     [DEST_ADDR],    eax
+    mov     eax,    0
+    mov     [LOADED_NUM],   eax
 
-;-------------copy sys-------------------------------------
-    xor     eax,    eax
-    xor     ebx,    ebx
-    xor     ecx,    ecx
-    xor     edx,    edx
-    mov     esi,    SYS_SEC_NUM
-    mov     ax,     SYS_SEG
-    mov     es,     ax
-    mov     bx,     0
-    mov     dx,     0
-    mov     cx,     SYS_SEC_START
-
-READ_SYS_LOOP:
-    test    esi,    esi
-    jz      READ_SYS_OVER
-    xor     eax,    eax
-    mov     al,     19
-    sub     al,     cl
-    cmp     eax,    esi
-    jc      SYS_SEC_NUM_IN_CYLINDER_LOW_THAN_REMAIN
-    mov     ax,     si
-SYS_SEC_NUM_IN_CYLINDER_LOW_THAN_REMAIN:
-    mov     di,     ax
-    mov     ah,     02h
+LOAD_SETUP_LOOP:
+    mov     dl,     FLOOPPY_DRIVE       ;driver
+    mov     dh,     [HEAD]              ;head
+    mov     ch,     [CYLINDER]          ;cylinder
+    mov     cl,     [SECTOR]            ;sector
+    mov     eax,    [DEST_ADDR]
+    and     eax,    000f0000h
+    shr     eax,    4
+    mov     es,     ax                  ;segment
+    mov     eax,    [DEST_ADDR]
+    mov     bx,     ax                  ;address
+    mov     ah,     02h                 ;read sectors from drive
+    mov     al,     01h                 ;sectors to read count
     int     13h
-    add     bx,     512
-    jnc     SYS_SEGMENT_NOT_FULL
-    mov     ax,     es
-    add     ax,     1000h
-    mov     es,     ax
-SYS_SEGMENT_NOT_FULL:
-    add     cx,     di
-    xor     ax,     ax
-    mov     al,     cl
-;    shl     al,     2
-;    shr     al,     2
-    and     al,     00111111b
-    cmp     al,     20
-    jc     SYS_SECTOR_IN_CYLINDER_NOT_FINISHED
-    add     cx,     0000000001000000b
-    sub     cx,     18
-    mov     ax,     cx
-    shr     ax,     6
-    cmp     ax,     81
-    jc      SYS_CYLINDER_IN_HEAD_NOT_FINISHED
-    add     dh,     1
-    sub     cx,     0001010000000000b
-SYS_CYLINDER_IN_HEAD_NOT_FINISHED:
-SYS_SECTOR_IN_CYLINDER_NOT_FINISHED:
-    sub     si,     di
-    jmp     READ_SYS_LOOP
-READ_SYS_OVER:
+
+    inc byte    [SECTOR]
+    mov     al,     [SECTOR]
+    cmp     al,     SEC_PER_CYLINDER_PLUS_1
+    jb      SETUP_CHS_OK
+    sub     al,     18
+    mov     [SECTOR],   al
+    mov     al,     [HEAD]
+    inc     al
+    and     al,     1
+    mov     [HEAD], al
+    test    al,     al
+    jnz     SETUP_CHS_OK
+    inc byte    [CYLINDER]
+SETUP_CHS_OK:
+    mov     eax,    [DEST_ADDR]
+    add     eax,    512
+    mov     [DEST_ADDR],    eax
+
+    inc byte    [LOADED_NUM]
+    mov     al,     [LOADED_NUM]
+    cmp     al,     SETUP_SEC_NUM
+    jz      LOAD_SETUP_OK
+    jmp     LOAD_SETUP_LOOP
+LOAD_SETUP_OK:
+
+;-----------load kernel sectors------------------------------------------------------------
+    mov     al,     KERNEL_START_HEAD
+    mov     [HEAD], al
+    mov     al,     KERNEL_START_CYLINDER
+    mov     [CYLINDER], al
+    mov     al,     KERNEL_START_SEC
+    mov     [SECTOR],   al
+    xor     eax,    eax
+    mov     ax,     KERNEL_SEG
+    shl     eax,    4
+    add     eax,    KERNEL_ADDR
+    mov     [DEST_ADDR],    eax
+    mov     eax,    0
+    mov     [LOADED_NUM],   eax
+
+LOAD_KERNEL_LOOP:
+    mov     dl,     FLOOPPY_DRIVE       ;driver
+    mov     dh,     [HEAD]              ;head
+    mov     ch,     [CYLINDER]          ;cylinder
+    mov     cl,     [SECTOR]            ;sector
+    mov     eax,    [DEST_ADDR]
+    and     eax,    000f0000h
+    shr     eax,    4
+    mov     es,     ax                  ;segment
+    mov     eax,    [DEST_ADDR]
+    mov     bx,     ax                  ;address
+    mov     ah,     02h                 ;read sectors from drive
+    mov     al,     01h                 ;sectors to read count
+    int     13h
+
+    inc byte    [SECTOR]
+    mov     al,     [SECTOR]
+    cmp     al,     SEC_PER_CYLINDER_PLUS_1
+    jb      KERNEL_CHS_OK
+    sub     al,     18
+    mov     [SECTOR],   al
+    mov     al,     [HEAD]
+    inc     al
+    and     al,     1
+    mov     [HEAD], al
+    test    al,     al
+    jnz     KERNEL_CHS_OK
+    inc byte    [CYLINDER]
+KERNEL_CHS_OK:
+    mov     eax,    [DEST_ADDR]
+    add     eax,    512
+    mov     [DEST_ADDR],    eax
+
+    inc byte    [LOADED_NUM]
+    mov     al,     [LOADED_NUM]
+    cmp     al,     KERNEL_SEC_NUM
+    jz      LOAD_KERNEL_OK
+    jmp     LOAD_KERNEL_LOOP
+LOAD_KERNEL_OK:
+
+
 ;--------------kill motor-------------------------------------------
     mov     dx,     03f2h
     mov     al,     0
@@ -185,6 +195,8 @@ PRINT_BOOT_SUCCESS:
 HEAD:       db      0
 CYLINDER:   db      0
 SECTOR:     db      0
+LOADED_NUM: dd      0
+DEST_ADDR:  dd      0
 
 MSG1:
     db      "boot success!"

@@ -38,7 +38,7 @@ realclean:
 buildimg:
 	dd if=boot/bootsec.bin of=../a.img bs=512 count=1 conv=notrunc
 	dd if=boot/setup.bin of=../a.img bs=512 count=3 seek=1 conv=notrunc
-	dd if=kernel.bin of=../a.img bs=512 count=20 seek=4 conv=notrunc
+	dd if=kernel.bin of=../a.img bs=512 count=30 seek=4 conv=notrunc
 
 boot/bootsec.bin: boot/bootsec.asm
 	$(ASM) $(ASMBFLAGS) -o $@ $<
