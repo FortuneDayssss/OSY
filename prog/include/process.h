@@ -4,6 +4,15 @@
 #define MAX_PROCESS_NUM     10
 #define STACK_SIZE          4*1024
 
+#define PROCESS_RUNNING         0   //running
+#define PROCESS_INTERRUPTED     1   //interruptable sleep
+#define PROCESS_UNINTERRUPTABLE 2   //uninterruptable sleep
+#define PROCESS_STOPPED         3   //stopped
+#define PROCESS_DEAD            4   //zombie
+#define PROCESS_EMPTY           5   //(for test) avaliable pcb
+#define PROCESS_READY           6   //for test
+
+
 typedef struct{
     uint32_t gs;
     uint32_t fs;
@@ -29,7 +38,6 @@ typedef struct{
     Register_Frame  registers;
     uint16_t        ldt_selector;
     Descriptor      ldt[LDT_SIZE];
-    TSS             tss;
     uint8_t         stack0[STACK_SIZE];
     uint8_t         stack1[STACK_SIZE];
     uint8_t         stack2[STACK_SIZE];

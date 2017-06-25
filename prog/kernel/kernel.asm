@@ -8,7 +8,11 @@ extern dummy_irq
 extern irq_table
 extern test
 
+extern current_process
+extern tss
+
 global _start
+global change_to_user_mode
 
 ;exception
 global divide_error
@@ -232,3 +236,26 @@ hwint15:		; Interrupt routine for irq 15
 
 save:
     ret
+
+change_to_user_mode:
+	mov		esp,	[current_process]
+	lldt	[esp + PCB_OFFSET_LDT_SELECTOR]
+	lea		eax,	[esp + PCB_OFFSET_STACK0TOP]
+	mov		[tss + TSS_OFFSET_SP0],	eax
+	lea		eax,	[esp + PCB_OFFSET_STACK1TOP]
+	mov		[tss + TSS_OFFSET_SP1],	eax
+	lea		eax,	[esp + PCB_OFFSET_STACK2TOP]
+	mov		[tss + TSS_OFFSET_SP2],	eax
+
+
+	pop	gs
+	pop	fs
+	pop	es
+	pop	ds
+	popad
+	add	esp, 4
+
+aaa:
+;	jmp		aaa
+	
+	iretd

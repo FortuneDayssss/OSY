@@ -2,6 +2,7 @@
 #include "global.h"
 #include "print.h"
 #include "protect.h"
+#include "process.h"
 #include "string.h"
 
 //memory data
@@ -43,4 +44,15 @@ void init_kernel(){
     *idt_base_ptr = (uint32_t)&idt;
     init_interrupt();
     init_tss();
+
+    //init ldt descriptor in gdt
+    for(int i = 0; i < MAX_PROCESS_NUM; i++){
+        init_descriptor(
+            &gdt[(SELECTOR_LDT_FIRST + 8 * i) >> 3],
+            (uint32_t)vir2phyaddr(seg2phyaddr(SELECTOR_MEMC), &(pcb_table[i].ldt)),
+            LDT_SIZE * sizeof(Descriptor) - 1,
+            DA_LDT
+        );
+    }
+
 }

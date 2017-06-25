@@ -152,8 +152,20 @@ typedef struct{
 #define AT_WINI_IRQ				14
 
 //protect.c
+void out_byte(uint16_t port, uint8_t value);
+uint8_t in_byte(uint16_t port);
+void* seg2phyaddr(uint16_t selector);
+void* vir2phyaddr(void* selector_base, void* offset);
+void init_descriptor(Descriptor* descriptor, uint32_t base, uint32_t limit, uint16_t attribute);
+void init_idt_descriptor(unsigned char _vector, 
+                        uint8_t type, 
+                        interrupt_handler handler, 
+                        unsigned char privilege);
+void dummy_irq(int irq);
+void init_8259A();
 void init_interrupt();
 void init_tss();
+void exception_handler(int vec_no, int err_code, int eip, int cs, int eflags);
 
 
 //interrupt handler
