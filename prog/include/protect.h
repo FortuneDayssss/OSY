@@ -49,6 +49,11 @@ typedef struct{
 	uint16_t    iobase;
 }TSS;
 
+//GDT & IDT & LDT size
+#define GDT_SIZE    128
+#define IDT_SIZE    256
+#define LDT_SIZE	2
+
 //GDT index
 #define INDEX_DUMMY     0
 #define INDEX_MEMC      1
@@ -64,9 +69,6 @@ typedef struct{
 #define	SELECTOR_VIDEO		(0x18 + 3)
 #define	SELECTOR_TSS		0x20
 #define SELECTOR_LDT_FIRST	0x28
-
-//LDT
-#define LDT_SIZE	2
 
 /* 描述符类型值说明 */
 #define	DA_32			0x4000	/* 32 位段				*/
@@ -103,12 +105,17 @@ typedef struct{
 #define	SA_TIG		0
 #define	SA_TIL		4
 
+/* 权限 */
+#define	PRIVILEGE_KERNEL		0
+#define	PRIVILEGE_TASK			1
+#define	PRIVILEGE_USER			3
+
 /* 中断向量 */
 #define	INT_VECTOR_DIVIDE		0x0
 #define	INT_VECTOR_DEBUG		0x1
 #define	INT_VECTOR_NMI			0x2
 #define	INT_VECTOR_BREAKPOINT	0x3
-#define	INT_VECTOR_OVERFLO		0x4
+#define	INT_VECTOR_OVERFLOW		0x4
 #define	INT_VECTOR_BOUNDS		0x5
 #define	INT_VECTOR_INVAL_OP		0x6
 #define	INT_VECTOR_COPROC_NOT	0x7
@@ -131,7 +138,56 @@ typedef struct{
 #define	INT_S_CTL		0xA0	/* I/O port for second interrupt controller  <Slave>  */
 #define	INT_S_CTLMASK	0xA1	/* setting bits in this port disables ints   <Slave>  */
 
+//hardware interrupt
+#define IRQ_NUMBER				16
+#define CLOCK_IRQ				0
+#define KEYBOARD_IRQ			1
+#define	CASCADE_IRQ				2
+#define	ETHER_IRQ				3
+#define	SECONDARY_IRQ			3
+#define	RS232_IRQ				4
+#define	XT_WINI_IRQ				5
+#define	FLOPPY_IRQ				6
+#define PRINTER_IRQ				7
+#define AT_WINI_IRQ				14
+
+//protect.c
 void init_interrupt();
 void init_tss();
+
+
+//interrupt handler
+void divide_error();
+void single_step_exception();
+void nmi();
+void breakpoint_exception();
+void overflow();
+void bounds_check();
+void inval_opcode();
+void copr_not_available();
+void double_fault();
+void copr_seg_overrun();
+void inval_tss();
+void segment_not_present();
+void stack_exception();
+void general_protection();
+void page_fault();
+void copr_error();
+void hwint00();
+void hwint01();
+void hwint02();
+void hwint03();
+void hwint04();
+void hwint05();
+void hwint06();
+void hwint07();
+void hwint08();
+void hwint09();
+void hwint10();
+void hwint11();
+void hwint12();
+void hwint13();
+void hwint14();
+void hwint15();
 
 #endif

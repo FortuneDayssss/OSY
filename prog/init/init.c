@@ -44,5 +44,4 @@ void init_kernel(){
     init_interrupt();
     init_tss();
 
-
 }

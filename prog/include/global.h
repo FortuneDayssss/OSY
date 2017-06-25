@@ -1,7 +1,6 @@
 #ifndef _GLOBAL_H__
 #define _GLOBAL_H__
 #include "type.h"
-#include "const.h"
 #include "protect.h"
 
 //GDT
@@ -20,5 +19,8 @@ extern TSS         tss;
 
 //screen
 extern int dispPos;
+
+//irq
+extern irq_handler irq_table[IRQ_NUMBER];
 
 #endif
