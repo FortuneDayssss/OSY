@@ -14,7 +14,8 @@ Gate        idt[IDT_SIZE];
 TSS         tss;
 
 //process
-//TODO
+PCB         pcb_table[MAX_PROCESS_NUM];
+PCB*        current_process;
 
 //screen
 int dispPos = 0;

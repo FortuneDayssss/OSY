@@ -13,6 +13,7 @@ OSBOOT		= boot/bootsec.bin boot/setup.bin
 OSKERNEL	= kernel.bin
 OBJS		= kernel/kernel.o \
 				kernel/global.o \
+				kernel/process.o \
 				init/main.o \
 				init/init.o \
 				init/protect.o \
@@ -53,6 +54,9 @@ kernel/kernel.o: kernel/kernel.asm
 	$(ASM) $(ASMKFLAGS) -o $@ $<
 
 kernel/global.o: kernel/global.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+kernel/process.o: kernel/process.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 init/init.o: init/init.c

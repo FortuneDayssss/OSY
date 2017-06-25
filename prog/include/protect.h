@@ -52,7 +52,7 @@ typedef struct{
 //GDT & IDT & LDT size
 #define GDT_SIZE    128
 #define IDT_SIZE    256
-#define LDT_SIZE	2
+#define LDT_SIZE	3
 
 //GDT index
 #define INDEX_DUMMY     0

@@ -43,5 +43,4 @@ void init_kernel(){
     *idt_base_ptr = (uint32_t)&idt;
     init_interrupt();
     init_tss();
-
 }

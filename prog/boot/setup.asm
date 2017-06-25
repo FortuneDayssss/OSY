@@ -125,7 +125,7 @@ SETUP32_ENTRY:
     add     ebx,    44
     xor     ecx,    ecx
     mov     cx,     [ds : ebx]              ;elfHeader + 44 = elfHeader->e_phnum(2Byte)
-    dec     cx                              ;???last program header always size == 0???
+    dec     cx                              ;gnu stack
 
 ;---------------------------------------------------------------------------------------------
 Load_Kernel_Program_Loop:
@@ -141,7 +141,7 @@ Load_Kernel_Program_Loop:
     add     ebx,    eax
     push    ebx                             ;rsrcAddress
 
-    call    ASM_Memcpy
+    call    ASM_Memcpy2
     add     esp,    12
 
 	;prgmHeader = prgmHeader + prgmHeaderSize(= nextPrgmHeader)
@@ -188,7 +188,7 @@ ISNT_NOBITS:
     add     ebx,    eax
     push    ebx                             ;rsrcAddress
 
-    call    ASM_Memcpy
+    call    ASM_Memcpy2
     add     esp,    12
 
 Load_Kernel_Section_Continue:
@@ -246,32 +246,32 @@ PAGING_OK:
 ;-------------------function--------------------------------------------
 ;void ASM_Memcpy(byte4 rsrcAddr, byte4 opAddr, byte4 size)
 ;ds:rsrcAddr => es:opAddr
-ASM_Memcpy:
-	push		ebp
-	mov		ebp,		esp
-	push		eax
-	push		ecx
-	push		esi
-	push		edi
-
-	mov		esi,		[ebp + 8]	;rsrcAddr
-	mov		edi,		[ebp + 12]	;opAddr
-	mov		ecx,		[ebp + 16]	;size
-	shr		ecx,		1
-	add		ecx,		1
-MEMCOPY_LOOP:
-	mov		eax,		[ds : esi]
-	mov		[ds : edi],	eax
-	add		esi,		4
-	add		edi,		4		
-	loop		MEMCOPY_LOOP
-
-	pop		edi
-	pop		esi
-	pop		ecx
-	pop		eax
-	pop		ebp
-	ret
+;ASM_Memcpy:
+;	push		ebp
+;	mov		ebp,		esp
+;	push		eax
+;	push		ecx
+;	push		esi
+;	push		edi
+;
+;	mov		esi,		[ebp + 8]	;rsrcAddr
+;	mov		edi,		[ebp + 12]	;opAddr
+;	mov		ecx,		[ebp + 16]	;size
+;	shr		ecx,		1
+;	add		ecx,		1
+;MEMCOPY_LOOP:
+;	mov		eax,		[ds : esi]
+;	mov		[ds : edi],	eax
+;	add		esi,		4
+;	add		edi,		4
+;	loop		MEMCOPY_LOOP
+;
+;	pop		edi
+;	pop		esi
+;	pop		ecx
+;	pop		eax
+;	pop		ebp
+;	ret
 ;void memset0(u32 opAddr, u32 length)
 ASM_Memset0:
 	push		ebp
@@ -294,3 +294,25 @@ Memset_LOOP:
 	pop		eax
 	pop		ebp
 	ret
+
+ASM_Memcpy2:
+    push    ebp
+    mov     ebp,    esp
+    
+    push    esi
+    push    edi
+    push    ecx
+
+    mov		esi,		[ebp + 8]	;rsrcAddr
+	mov		edi,		[ebp + 12]	;opAddr
+	mov		ecx,		[ebp + 16]	;size
+
+    cld
+    rep
+    movsb
+
+    pop     ecx
+    pop     edi
+    pop     esi
+    pop     ebp
+    ret
