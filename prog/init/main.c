@@ -7,19 +7,27 @@
 
 void change_to_user_mode();//test, todo
 
+void sleep(int time){
+    for(int i = 0; i < time; i++)
+        for(int i = 0; i < 10000; i++)
+            ;
+}
+
 void test(){
-    printString("test\n", -1);
+    printString("schedule!\n", -1);
 }
 
 void p1test(){
     while(1){
-        printString("p1---\n", -1);
+        printString("p1---   ", -1);
+        // sleep(100);
     }
 }
 
 void p2test(){
     while(1){
-        printString("p2---", -1);
+        printString("p2---   ", -1);
+        // sleep(100);
     }
 }
 
@@ -56,10 +64,10 @@ int main(){
     }
 
     //process for test
-    pcb_table[0].state = PROCESS_READY;
+    pcb_table[0].state = PROCESS_RUNNING;
     pcb_table[0].registers.eip = (uint32_t)(p1test);
     pcb_table[1].state = PROCESS_READY;
-    pcb_table[1].registers.eip = (uint32_t)(p1test);
+    pcb_table[1].registers.eip = (uint32_t)(p2test);
 
     current_process = pcb_table;
 

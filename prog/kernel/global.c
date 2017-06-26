@@ -16,6 +16,7 @@ TSS         tss;
 //process
 PCB         pcb_table[MAX_PROCESS_NUM];
 PCB*        current_process;
+PCB*        next_process;
 
 //screen
 int dispPos = 0;

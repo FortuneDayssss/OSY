@@ -80,7 +80,7 @@ void init_8259A(){
     out_byte(INT_M_CTLMASK, 0x1);               //icw4 => master8259A
     out_byte(INT_S_CTLMASK, 0x1);               //icw4 => slave8259A
 
-    out_byte(INT_M_CTLMASK, 0xFF);              //ocw1 => master8259A  
+    out_byte(INT_M_CTLMASK, 0xFE);              //ocw1 => master8259A  
     out_byte(INT_S_CTLMASK, 0xFF);              //ocw1 => slave8259A
 
     //init irq

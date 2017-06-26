@@ -18,6 +18,7 @@ extern TSS          tss;
 //process
 extern PCB          pcb_table[MAX_PROCESS_NUM];
 extern PCB*         current_process;
+extern PCB*         next_process;
 
 //screen
 extern int dispPos;

@@ -7,8 +7,10 @@ extern exception_handler
 extern dummy_irq
 extern irq_table
 extern test
+extern get_next_process
 
 extern current_process
+extern next_process
 extern tss
 
 global _start
@@ -162,6 +164,45 @@ exception:
 
 ALIGN	16
 hwint00:		; Interrupt routine for irq 0 (the clock).
+	pushad							;save registers state
+	push	ds
+	push	es
+	push	fs
+	push	gs
+	
+	mov		ax,		ss				;change ds & es to kernel mode
+	mov		ds,		ax
+	mov		es,		ax
+
+	call	get_next_process
+	call	test
+	mov		eax,	[current_process]
+	mov		ebx,	[next_process]
+	cmp		eax,	ebx
+	jz		SCHEDULE_OK
+
+	mov		[current_process],	ebx
+	mov		esp,	[current_process]
+	lldt	[esp + PCB_OFFSET_LDT_SELECTOR]
+	lea		eax,	[esp + PCB_OFFSET_STACK0TOP]
+	mov		[tss + TSS_OFFSET_SP0],	eax
+	lea		eax,	[esp + PCB_OFFSET_STACK1TOP]
+	mov		[tss + TSS_OFFSET_SP1],	eax
+	lea		eax,	[esp + PCB_OFFSET_STACK2TOP]
+	mov		[tss + TSS_OFFSET_SP2],	eax
+SCHEDULE_OK:
+	mov		al,		EOI
+	out		20h,	al
+
+	pop		gs
+	pop		fs
+	pop		es
+	pop		ds
+	popad
+	add		esp,	4
+	iretd
+
+
 	hwint_master	0
 
 ALIGN	16
@@ -246,16 +287,10 @@ change_to_user_mode:
 	mov		[tss + TSS_OFFSET_SP1],	eax
 	lea		eax,	[esp + PCB_OFFSET_STACK2TOP]
 	mov		[tss + TSS_OFFSET_SP2],	eax
-
-
 	pop	gs
 	pop	fs
 	pop	es
 	pop	ds
 	popad
 	add	esp, 4
-
-aaa:
-;	jmp		aaa
-	
 	iretd

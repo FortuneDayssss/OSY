@@ -1,5 +1,7 @@
 #ifndef _PROCESS_H__
 #define _PROCESS_H__
+#include "type.h"
+#include "protect.h"
 
 #define MAX_PROCESS_NUM     10
 #define STACK_SIZE          4*1024
@@ -11,7 +13,6 @@
 #define PROCESS_DEAD            4   //zombie
 #define PROCESS_EMPTY           5   //(for test) avaliable pcb
 #define PROCESS_READY           6   //for test
-
 
 typedef struct{
     uint32_t gs;
@@ -50,5 +51,7 @@ typedef struct{
 
     uint32_t        tick;
 }PCB;
+
+void get_next_process();
 
 #endif
