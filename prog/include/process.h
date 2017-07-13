@@ -27,12 +27,13 @@ typedef struct{
     uint32_t edx;
     uint32_t ecx;
     uint32_t eax;
-    uint32_t return_address;
     uint32_t eip;
     uint32_t cs;
     uint32_t eflags;
     uint32_t esp;
     uint32_t ss;
+    uint32_t return_address;
+
 }Register_Frame;
 
 typedef struct{

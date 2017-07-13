@@ -2,15 +2,28 @@
 #include "global.h"
 
 void get_next_process(){
-    int next_p_index;
+    next_process = current_process;
+    if(current_process->tick > 0){
+        current_process->tick--;
+        return;
+    }
+    current_process->tick = 20;
+    int next_process_index = 0;
     for(int i = 0; i < MAX_PROCESS_NUM; i++){
-        if(&pcb_table[i] == current_process){
-            next_p_index = i;
+        if(current_process == &pcb_table[i]){
+            next_process_index = i;
+            break;
         }
     }
-    if(next_p_index == 1)
-        next_p_index = 0;
-    else
-        next_p_index = 1;
-    next_process = &pcb_table[next_p_index];
+
+    for(int i = 0; i < MAX_PROCESS_NUM; i++){
+        next_process_index = (next_process_index + 1) % MAX_PROCESS_NUM;
+        if(pcb_table[next_process_index].state == PROCESS_READY
+            || pcb_table[next_process_index].state == PROCESS_STOPPED){
+            next_process = &pcb_table[next_process_index];
+            current_process->state = PROCESS_STOPPED;
+            next_process->state = PROCESS_RUNNING;
+            break;
+        }
+    }
 }

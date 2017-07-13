@@ -66,8 +66,11 @@ int main(){
     //process for test
     pcb_table[0].state = PROCESS_RUNNING;
     pcb_table[0].registers.eip = (uint32_t)(p1test);
+    pcb_table[0].tick = 20;
     pcb_table[1].state = PROCESS_READY;
     pcb_table[1].registers.eip = (uint32_t)(p2test);
+    pcb_table[1].tick = 20;
+
 
     current_process = pcb_table;
 

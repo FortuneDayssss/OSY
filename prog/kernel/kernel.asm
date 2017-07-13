@@ -199,7 +199,7 @@ SCHEDULE_OK:
 	pop		es
 	pop		ds
 	popad
-	add		esp,	4
+	;add		esp,	4
 	iretd
 
 
@@ -292,5 +292,5 @@ change_to_user_mode:
 	pop	es
 	pop	ds
 	popad
-	add	esp, 4
 	iretd
+	;add	esp, 4
