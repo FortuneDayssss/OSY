@@ -143,17 +143,22 @@ exception:
 
 ;------hardware interrupt-------------------------------------------------------
 %macro	hwint_master	1
-
+	
 %endmacro
 
 
 ALIGN	16
 hwint00:		; Interrupt routine for irq 0 (the clock).
-;	hwint_master	0
-
 	pushad							;save registers state
 	mov		ebx,	[current_process]
 	mov	dword	[ebx + PCB_OFFSET_TESP],	esp
+
+	in		al,		INT_M_CTLMASK
+	or		al,		(1 << 0)
+	out		INT_M_CTLMASK,	al
+	mov		al,		EOI
+	out		INT_M_CTL,	al
+	sti
 	
 	mov		ax,		ss				;change ds & es to kernel mode
 	mov		ds,		ax
@@ -177,9 +182,10 @@ hwint00:		; Interrupt routine for irq 0 (the clock).
 	lea		eax,	[esp + PCB_OFFSET_TESP]
 	mov		esp,	[eax]
 SCHEDULE_OK:
-	mov		al,		EOI
-	out		20h,	al
-
+	cli
+	in		al,		INT_M_CTLMASK
+	and		al,		~(1 << 0)
+	out		INT_M_CTLMASK,	al
 	mov		ax,		SELECTOR_MEMD_3
 	mov		ds,		ax
 	mov		es,		ax
@@ -191,7 +197,16 @@ SCHEDULE_OK:
 
 ALIGN	16
 hwint01:		; Interrupt routine for irq 1 (keyboard)
-	hwint_master	1
+	pushad
+	call test
+	popad
+	mov		al,		EOI
+	out		INT_M_CTL,	al
+	in		al,		60h
+	or		al,		80h
+	out		60h,	al
+	iretd
+	;hwint_master	1
 
 ALIGN	16
 hwint02:		; Interrupt routine for irq 2 (cascade!)

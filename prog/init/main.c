@@ -69,42 +69,12 @@ int init_dummy_process(PCB* pcb){
 
 int main(){
     printString("main\n", -1);
-
-    //init pcb
-    // for(int i = 0; i < MAX_PROCESS_NUM; i++){
-    //     PCB* p = &(pcb_table[i]);
-        
-    //     //register
-    //     p->registers.cs = SELECTOR_MEMC_3;
-    //     p->registers.ds = SELECTOR_MEMD_3;
-    //     p->registers.es = SELECTOR_MEMD_3;
-    //     p->registers.fs = SELECTOR_MEMD_3;
-    //     p->registers.ss = SELECTOR_MEMD_3;
-    //     p->registers.gs = SELECTOR_VIDEO;
-    //     p->registers.esp = (uint32_t)(&(p->stack3[STACK_SIZE - 4]));
-    //     p->registers.eip = 0;
-    //     p->registers.eflags = 0x1202;//IF = 1, IOPL = 1
-        
-    //     //process state
-    //     p->pid = i;
-    //     //p->name;
-    //     p->state = PROCESS_EMPTY;
-    //     p->tick = 0;
-    // }
     for(int i = 0; i < MAX_PROCESS_NUM; i++){
         init_dummy_process(&pcb_table[i]);
     }
     init_process(&pcb_table[0], p1test);
     init_process(&pcb_table[1], p2test);
     pcb_table[0].state = PROCESS_RUNNING;
-
-    // //process for test
-    // pcb_table[0].state = PROCESS_RUNNING;
-    // pcb_table[0].registers.eip = (uint32_t)(p1test);
-    // pcb_table[0].tick = 20;
-    // pcb_table[1].state = PROCESS_READY;
-    // pcb_table[1].registers.eip = (uint32_t)(p2test);
-    // pcb_table[1].tick = 20;
 
     current_process = pcb_table;
 

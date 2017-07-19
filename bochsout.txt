@@ -32,7 +32,7 @@
 00000000000i[      ]   Sound support: no
 00000000000i[      ]   USB support: UHCI
 00000000000i[      ]   VGA extension support: vbe
-00000000000i[MEM0  ] allocated memory at 0x7f606e09c010. after alignment, vector=0x7f606e09d000
+00000000000i[MEM0  ] allocated memory at 0x7efd83eef010. after alignment, vector=0x7efd83ef0000
 00000000000i[MEM0  ] 32.00MB
 00000000000i[MEM0  ] mem block size = 0x00020000, blocks=256
 00000000000i[MEM0  ] rom at 0xfffe0000/131072 ('bochsfiles/BIOS-bochs-latest')
@@ -43,7 +43,7 @@
 00000000000i[DEV   ] PIIX3 PCI-to-ISA bridge present at device 1, function 0
 00000000000i[PLUGIN] init_dev of 'cmos' plugin device by virtual method
 00000000000i[CMOS  ] Using local time for initial clock
-00000000000i[CMOS  ] Setting initial clock to: Wed Jul 19 19:47:25 2017 (time0=1500464845)
+00000000000i[CMOS  ] Setting initial clock to: Wed Jul 19 22:04:30 2017 (time0=1500473070)
 00000000000i[PLUGIN] init_dev of 'dma' plugin device by virtual method
 00000000000i[DMA   ] channel 4 used by cascade
 00000000000i[PLUGIN] init_dev of 'pic' plugin device by virtual method
@@ -158,7 +158,7 @@
 00000322260i[BIOS  ] ram_end=32MB
 00000362770i[BIOS  ] Found 1 cpu(s)
 00000376974i[BIOS  ] bios_table_addr: 0x000fa498 end=0x000fcc00
-00000615528i[XGUI  ] charmap update. Font is 9 x 16
+00000619784i[XGUI  ] charmap update. Font is 9 x 16
 00000704769i[PCI   ] i440FX PMC write to PAM register 59 (TLB Flush)
 00001032698i[P2ISA ] PCI IRQ routing: PIRQA# set to 0x0b
 00001032717i[P2ISA ] PCI IRQ routing: PIRQB# set to 0x09
@@ -194,27 +194,229 @@
 00001532106i[BXVGA ] VBE known Display Interface b0c0
 00001532138i[BXVGA ] VBE known Display Interface b0c5
 00001535063i[VBIOS ] VBE Bios $Id: vbe.c,v 1.65 2014/07/08 18:02:25 vruppert Exp $
-00002575804i[XGUI  ] charmap update. Font is 9 x 16
+00002335960i[XGUI  ] charmap update. Font is 9 x 16
 00014040191i[BIOS  ] Booting from 0000:7c00
-00086326289i[      ] Ctrl-C detected in signal handler.
-00086326290i[      ] dbg: Quit
-00086326290i[CPU0  ] CPU is in protected mode (active)
-00086326290i[CPU0  ] CS.mode = 32 bit
-00086326290i[CPU0  ] SS.mode = 32 bit
-00086326290i[CPU0  ] EFER   = 0x00000000
-00086326290i[CPU0  ] | EAX=000005de  EBX=0000053c  ECX=0000004f  EDX=000002d0
-00086326290i[CPU0  ] | ESP=00018450  EBP=00018474  ESI=00000000  EDI=00000000
-00086326290i[CPU0  ] | IOPL=1 id vip vif ac vm rf nt of df IF tf sf zf AF PF cf
-00086326290i[CPU0  ] | SEG sltr(index|ti|rpl)     base    limit G D
-00086326290i[CPU0  ] |  CS:003b( 0007| 0|  3) 00000000 ffffffff 1 1
-00086326290i[CPU0  ] |  DS:0043( 0008| 0|  3) 00000000 ffffffff 1 1
-00086326290i[CPU0  ] |  SS:0043( 0008| 0|  3) 00000000 ffffffff 1 1
-00086326290i[CPU0  ] |  ES:0043( 0008| 0|  3) 00000000 ffffffff 1 1
-00086326290i[CPU0  ] |  FS:0043( 0008| 0|  3) 00000000 ffffffff 1 1
-00086326290i[CPU0  ] |  GS:004b( 0009| 0|  3) 000b8000 0000ffff 0 0
-00086326290i[CPU0  ] | EIP=00010e18 (00010e18)
-00086326290i[CPU0  ] | CR0=0xe0000011 CR2=0x00000000
-00086326290i[CPU0  ] | CR3=0x00200000 CR4=0x00000000
-00086326290i[CMOS  ] Last time is 1500464866 (Wed Jul 19 19:47:46 2017)
-00086326290i[XGUI  ] Exit
-00086326290i[SIM   ] quit_sim called with exit code 0
+00199326749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0x92
+00199385084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00213526084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00213585084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00216238749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0x92
+00216297084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00217426749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00217485084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00219530749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00219589084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00219870749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0x92
+00219929084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00223126749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0x92
+00223185084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00224322084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00224381084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00226226084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00226285084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00227478749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0x92
+00227537084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00230102749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0x92
+00230161084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00231274749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00231333084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00232746084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00232805084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00234534749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0x92
+00234593084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00236250749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0x92
+00236309084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00237774749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00237833084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00239814084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00239873084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00241122749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0x92
+00241181084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00243942749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0x92
+00244001084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00245094749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00245153084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00247674749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00247733084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00248958749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0x92
+00249017084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00251830749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0x92
+00251889084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00253034084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00253093084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00256114749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00256173084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00257174084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0x92
+00257233084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00260694749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0x92
+00260753084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00261538749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00261597084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00264882749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00264941084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00265682749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0x92
+00265741084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00268670084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0x92
+00268729084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00270174749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00270233084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00273126084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00273185084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00274002749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0x92
+00274061084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00277394749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0x92
+00277453084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00278682749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00278741084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00282202749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00282261084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00283342749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0x92
+00283401084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00286806749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0x92
+00286865084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00288082749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00288141084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00290826084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00290885084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00292134749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0x92
+00292193084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00295194749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0x92
+00295253084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00296718084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00296777084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00300210749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00300269084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00302374749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0x92
+00302433084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00304402749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0x92
+00304461084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00305210749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00305269084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00308290749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00308349084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00309770084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0x92
+00309829084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00314086749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0x92
+00314145084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00314478749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00314537084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00317770749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00317829084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00318962084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0x92
+00319021084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00323662749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0x92
+00323721084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00327094084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00327153084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00333002084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0x92
+00333061084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00333890749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00333949084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00336734749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00336793084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00338410749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00338469084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00359942084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00360001084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00362898749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00362957084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00366814749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00366873084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00369294749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00369353084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00371834749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00371893084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00374438749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00374497084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00377754749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00377813084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00379930749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00379989084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00384098749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00384157084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00384810749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00384869084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00388606084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00388665084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00391694084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00391753084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00395090749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00395149084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00397714749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00397773084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00400698084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00400757084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00403970084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00404029084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00406654749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00406713084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00409698084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00409757084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00412562084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00412621084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00416154749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00416213084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00419146749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00419205084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00422118749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00422177084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00425522084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00425581084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00428822084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00428881084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00431482749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00431541084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00434482084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00434541084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00437786084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00437845084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00441282084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00441341084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00444318749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00444377084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00447614749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00447673084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00450138084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00450197084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00454330084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00454389084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00456926084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00456985084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00460014084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00460073084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00463278084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00463337084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00467222084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00467281084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00469830749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00469889084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00473114749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00473173084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00475750749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00475809084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00479074084e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00479133084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00483466749e[KBD   ] kbd_ctrl_to_kbd(): got value of 0xa1
+00483525084p[KBD   ] >>PANIC<< got 0xFE (resend)
+00518832916i[      ] Ctrl-C detected in signal handler.
+00518832917i[      ] dbg: Quit
+00518832917i[CPU0  ] CPU is in protected mode (active)
+00518832917i[CPU0  ] CS.mode = 32 bit
+00518832917i[CPU0  ] SS.mode = 32 bit
+00518832917i[CPU0  ] EFER   = 0x00000000
+00518832917i[CPU0  ] | EAX=00000f56  EBX=00000eb6  ECX=00000007  EDX=00000017
+00518832917i[CPU0  ] | ESP=00019454  EBP=00019478  ESI=00000000  EDI=00000000
+00518832917i[CPU0  ] | IOPL=1 id vip vif ac vm rf nt of df IF tf SF zf AF PF CF
+00518832917i[CPU0  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00518832917i[CPU0  ] |  CS:0008( 0001| 0|  0) 00000000 ffffffff 1 1
+00518832917i[CPU0  ] |  DS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+00518832917i[CPU0  ] |  SS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+00518832917i[CPU0  ] |  ES:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+00518832917i[CPU0  ] |  FS:0043( 0008| 0|  3) 00000000 ffffffff 1 1
+00518832917i[CPU0  ] |  GS:004b( 0009| 0|  3) 000b8000 0000ffff 0 0
+00518832917i[CPU0  ] | EIP=00010e13 (00010e13)
+00518832917i[CPU0  ] | CR0=0xe0000011 CR2=0x00000000
+00518832917i[CPU0  ] | CR3=0x00200000 CR4=0x00000000
+00518832917i[CMOS  ] Last time is 1500473199 (Wed Jul 19 22:06:39 2017)
+00518832917i[XGUI  ] Exit
+00518832917i[SIM   ] quit_sim called with exit code 0
