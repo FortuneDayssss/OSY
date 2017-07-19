@@ -67,8 +67,7 @@ _start:
     call    init_kernel
     lgdt    [gdt_ptr]
     lidt    [idt_ptr]
-    sti
-    jmp     SELECTOR_MEMC:NEW_GDT_OK
+    jmp     SELECTOR_MEMC_0:NEW_GDT_OK
 NEW_GDT_OK:
     xor     eax,    eax
     mov     ax,     SELECTOR_TSS
@@ -144,31 +143,17 @@ exception:
 
 ;------hardware interrupt-------------------------------------------------------
 %macro	hwint_master	1
-;	call	save
-;	in	al, INT_M_CTLMASK
-;	or	al, (1 << %1)
-;	out	INT_M_CTLMASK, al
-;	mov	al, EOI	
-;	out	INT_M_CTL, al
-;	sti
-;	push	%1
-	call	[irq_table + 4 * %1]
-;	pop	ecx
-;	cli
-;	in	al, INT_M_CTLMASK
-;	and	al, ~(1 << %1)
-;	out	INT_M_CTLMASK, al
-	ret
+
 %endmacro
 
 
 ALIGN	16
 hwint00:		; Interrupt routine for irq 0 (the clock).
+;	hwint_master	0
+
 	pushad							;save registers state
-	push	ds
-	push	es
-	push	fs
-	push	gs
+	mov		ebx,	[current_process]
+	mov	dword	[ebx + PCB_OFFSET_TESP],	esp
 	
 	mov		ax,		ss				;change ds & es to kernel mode
 	mov		ds,		ax
@@ -183,27 +168,26 @@ hwint00:		; Interrupt routine for irq 0 (the clock).
 
 	mov		[current_process],	ebx
 	mov		esp,	[current_process]
-	lldt	[esp + PCB_OFFSET_LDT_SELECTOR]
 	lea		eax,	[esp + PCB_OFFSET_STACK0TOP]
 	mov		[tss + TSS_OFFSET_SP0],	eax
 	lea		eax,	[esp + PCB_OFFSET_STACK1TOP]
 	mov		[tss + TSS_OFFSET_SP1],	eax
 	lea		eax,	[esp + PCB_OFFSET_STACK2TOP]
 	mov		[tss + TSS_OFFSET_SP2],	eax
+	lea		eax,	[esp + PCB_OFFSET_TESP]
+	mov		esp,	[eax]
 SCHEDULE_OK:
 	mov		al,		EOI
 	out		20h,	al
 
-	pop		gs
-	pop		fs
-	pop		es
-	pop		ds
+	mov		ax,		SELECTOR_MEMD_3
+	mov		ds,		ax
+	mov		es,		ax
+	mov		fs,		ax
+	mov		ax,		SELECTOR_VIDEO
+	mov		gs,		ax
 	popad
-	;add		esp,	4
 	iretd
-
-
-	hwint_master	0
 
 ALIGN	16
 hwint01:		; Interrupt routine for irq 1 (keyboard)
@@ -280,17 +264,26 @@ save:
 
 change_to_user_mode:
 	mov		esp,	[current_process]
-	lldt	[esp + PCB_OFFSET_LDT_SELECTOR]
 	lea		eax,	[esp + PCB_OFFSET_STACK0TOP]
 	mov		[tss + TSS_OFFSET_SP0],	eax
 	lea		eax,	[esp + PCB_OFFSET_STACK1TOP]
 	mov		[tss + TSS_OFFSET_SP1],	eax
 	lea		eax,	[esp + PCB_OFFSET_STACK2TOP]
 	mov		[tss + TSS_OFFSET_SP2],	eax
-	pop	gs
-	pop	fs
-	pop	es
-	pop	ds
+	lea		eax,	[esp + PCB_OFFSET_TESP]
+	mov		esp,	[eax]
+	mov		ax,		SELECTOR_MEMD_3
+	mov		ds,		ax
+	mov		es,		ax
+	mov		fs,		ax
+	mov		ax,		SELECTOR_VIDEO
+	mov		gs,		ax
+	xor		edi,	edi
+	xor		esi,	esi
+	xor		ebx,	ebx
+	xor		edx,	edx
+	xor		ecx,	ecx
+	xor		eax,	eax
 	popad
+	sti
 	iretd
-	;add	esp, 4

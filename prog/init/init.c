@@ -43,16 +43,17 @@ void init_kernel(){
     *idt_limit_ptr = IDT_SIZE * sizeof(Gate) - 1;
     *idt_base_ptr = (uint32_t)&idt;
     init_interrupt();
-    init_tss();
+    init_tss_descriptor();
 
-    //init ldt descriptor in gdt
-    for(int i = 0; i < MAX_PROCESS_NUM; i++){
-        init_descriptor(
-            &gdt[(SELECTOR_LDT_FIRST + 8 * i) >> 3],
-            (uint32_t)vir2phyaddr(seg2phyaddr(SELECTOR_MEMC), &(pcb_table[i].ldt)),
-            LDT_SIZE * sizeof(Descriptor) - 1,
-            DA_LDT
-        );
-    }
+    //todo: delete
+    // //init ldt descriptor in gdt
+    // for(int i = 0; i < MAX_PROCESS_NUM; i++){
+    //     init_descriptor(
+    //         &gdt[(SELECTOR_LDT_FIRST + 8 * i) >> 3],
+    //         (uint32_t)vir2phyaddr(seg2phyaddr(SELECTOR_MEMC_0), &(pcb_table[i].ldt)),
+    //         LDT_SIZE * sizeof(Descriptor) - 1,
+    //         DA_LDT
+    //     );
+    // }
 
 }

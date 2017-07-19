@@ -31,46 +31,80 @@ void p2test(){
     }
 }
 
+int init_process(PCB* pcb, void (*startAddr)){
+    uint32_t* stackPointer = (uint32_t*)(&pcb->stack0[STACK_SIZE - 4]);//stack0 top
+    *stackPointer = SELECTOR_MEMD_3;
+    stackPointer--;
+    *stackPointer = (uint32_t)(&pcb->stack3[STACK_SIZE - 4]);//stack3 top
+    stackPointer--;
+    *stackPointer = 0x1202;//IF = 1, IOPL = 1
+    stackPointer--;
+    *stackPointer = SELECTOR_MEMC_3;
+    stackPointer--;
+    *stackPointer = (uint32_t)startAddr;
+    stackPointer--;
+    *stackPointer = 0;//eax
+    stackPointer--;
+    *stackPointer = 0;//ecx
+    stackPointer--;
+    *stackPointer = 0;//edx
+    stackPointer--;
+    *stackPointer = 0;//ebx
+    stackPointer--;
+    *stackPointer = (uint32_t)(&pcb->stack3[STACK_SIZE - 4]);//esp
+    stackPointer--;
+    *stackPointer = 0;//ebp
+    stackPointer--;
+    *stackPointer = 0;//esi
+    stackPointer--;
+    *stackPointer = 0;//edi
+    pcb->esp = (uint32_t)stackPointer;
+    pcb->state = PROCESS_READY;
+    pcb->tick = 20;
+}
+
+int init_dummy_process(PCB* pcb){
+    pcb->state = PROCESS_EMPTY;
+}
+
 int main(){
     printString("main\n", -1);
 
     //init pcb
+    // for(int i = 0; i < MAX_PROCESS_NUM; i++){
+    //     PCB* p = &(pcb_table[i]);
+        
+    //     //register
+    //     p->registers.cs = SELECTOR_MEMC_3;
+    //     p->registers.ds = SELECTOR_MEMD_3;
+    //     p->registers.es = SELECTOR_MEMD_3;
+    //     p->registers.fs = SELECTOR_MEMD_3;
+    //     p->registers.ss = SELECTOR_MEMD_3;
+    //     p->registers.gs = SELECTOR_VIDEO;
+    //     p->registers.esp = (uint32_t)(&(p->stack3[STACK_SIZE - 4]));
+    //     p->registers.eip = 0;
+    //     p->registers.eflags = 0x1202;//IF = 1, IOPL = 1
+        
+    //     //process state
+    //     p->pid = i;
+    //     //p->name;
+    //     p->state = PROCESS_EMPTY;
+    //     p->tick = 0;
+    // }
     for(int i = 0; i < MAX_PROCESS_NUM; i++){
-        PCB* p = &(pcb_table[i]);
-        
-        //ldt
-        p->ldt_selector = SELECTOR_LDT_FIRST + 8 * i;
-        memcpy(&(p->ldt[0]), &(gdt[SELECTOR_MEMC >> 3]), sizeof(Descriptor));
-        memcpy(&(p->ldt[1]), &(gdt[SELECTOR_MEMD >> 3]), sizeof(Descriptor));
-        p->ldt[0].attr1 = DA_C | PRIVILEGE_USER << 5;
-        p->ldt[1].attr1 = DA_DRW | PRIVILEGE_USER << 5;
-        
-        //register
-        p->registers.cs = (0 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | SA_RPL3;
-        p->registers.ds = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | SA_RPL3;
-        p->registers.es = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | SA_RPL3;
-        p->registers.fs = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | SA_RPL3;
-        p->registers.ss = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | SA_RPL3;
-        p->registers.gs = (SELECTOR_VIDEO & SA_RPL_MASK) | SA_RPL3;
-        p->registers.esp = (uint32_t)(&(p->stack3[STACK_SIZE - 4]));
-        p->registers.eip = 0;
-        p->registers.eflags = 0x1202;//IF = 1, IOPL = 1
-        
-        //process state
-        p->pid = i;
-        //p->name;
-        p->state = PROCESS_EMPTY;
-        p->tick = 0;
+        init_dummy_process(&pcb_table[i]);
     }
-
-    //process for test
+    init_process(&pcb_table[0], p1test);
+    init_process(&pcb_table[1], p2test);
     pcb_table[0].state = PROCESS_RUNNING;
-    pcb_table[0].registers.eip = (uint32_t)(p1test);
-    pcb_table[0].tick = 20;
-    pcb_table[1].state = PROCESS_READY;
-    pcb_table[1].registers.eip = (uint32_t)(p2test);
-    pcb_table[1].tick = 20;
 
+    // //process for test
+    // pcb_table[0].state = PROCESS_RUNNING;
+    // pcb_table[0].registers.eip = (uint32_t)(p1test);
+    // pcb_table[0].tick = 20;
+    // pcb_table[1].state = PROCESS_READY;
+    // pcb_table[1].registers.eip = (uint32_t)(p2test);
+    // pcb_table[1].tick = 20;
 
     current_process = pcb_table;
 

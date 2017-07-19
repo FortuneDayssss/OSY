@@ -56,19 +56,30 @@ typedef struct{
 
 //GDT index
 #define INDEX_DUMMY     0
-#define INDEX_MEMC      1
-#define INDEX_MEMD      2
-#define INDEX_VIDEO     3
-#define INDEX_TSS       4
-#define INDEX_LDT_FIRST 5
-
+#define INDEX_MEMC_0    1
+#define INDEX_MEMD_0    2
+#define INDEX_MEMC_1    3
+#define INDEX_MEMD_1    4
+#define INDEX_MEMC_2    5
+#define INDEX_MEMD_2    6
+#define INDEX_MEMC_3    7
+#define INDEX_MEMD_3    8
+#define INDEX_VIDEO     9
+#define INDEX_TSS       10
+#define INDEX_LDT_FIRST 11
 //GDT selector
-#define	SELECTOR_DUMMY		0
-#define	SELECTOR_MEMC		0x08
-#define	SELECTOR_MEMD		0x10
-#define	SELECTOR_VIDEO		(0x18 + 3)
-#define	SELECTOR_TSS		0x20
-#define SELECTOR_LDT_FIRST	0x28
+#define	SELECTOR_DUMMY		0x00
+#define	SELECTOR_MEMC_0		(0x08 + 0)
+#define	SELECTOR_MEMD_0		(0x10 + 0)
+#define	SELECTOR_MEMC_1		(0x18 + 1)
+#define	SELECTOR_MEMD_1		(0x20 + 1)
+#define	SELECTOR_MEMC_2		(0x28 + 2)
+#define	SELECTOR_MEMD_2		(0x30 + 2)
+#define	SELECTOR_MEMC_3		(0x38 + 3)
+#define	SELECTOR_MEMD_3		(0x40 + 3)
+#define	SELECTOR_VIDEO		(0x48 + 3)
+#define	SELECTOR_TSS		0x50
+//#define SELECTOR_LDT_FIRST	0x58
 
 /* 描述符类型值说明 */
 #define	DA_32			0x4000	/* 32 位段				*/
@@ -164,7 +175,7 @@ void init_idt_descriptor(unsigned char _vector,
 void dummy_irq(int irq);
 void init_8259A();
 void init_interrupt();
-void init_tss();
+void init_tss_descriptor();
 void exception_handler(int vec_no, int err_code, int eip, int cs, int eflags);
 
 

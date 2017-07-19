@@ -18,14 +18,21 @@ PAGE_TBL_BASE   equ     00201000h
 
 LABEL_GDT:
     LABEL_DESC_DUMMY:   Descriptor  0,              0,          0
-    LABEL_DESC_MEMC:    Descriptor  00000000h,      0fffffh,    DA_C | DA_32 | DA_LIMIT_4K
-    LABEL_DESC_MEMD:    Descriptor  00000000h,      0fffffh,    DA_DRW | DA_32 | DA_LIMIT_4K
+    LABEL_DESC_MEMC_0:  Descriptor  00000000h,      0fffffh,    DA_C | DA_32 | DA_LIMIT_4K | DA_DPL0
+    LABEL_DESC_MEMD_0:  Descriptor  00000000h,      0fffffh,    DA_DRW | DA_32 | DA_LIMIT_4K | DA_DPL0
+    LABEL_DESC_MEMC_1:  Descriptor  00000000h,      0fffffh,    DA_C | DA_32 | DA_LIMIT_4K | DA_DPL1
+    LABEL_DESC_MEMD_1:  Descriptor  00000000h,      0fffffh,    DA_DRW | DA_32 | DA_LIMIT_4K | DA_DPL1
+    LABEL_DESC_MEMC_2:  Descriptor  00000000h,      0fffffh,    DA_C | DA_32 | DA_LIMIT_4K | DA_DPL2
+    LABEL_DESC_MEMD_2:  Descriptor  00000000h,      0fffffh,    DA_DRW | DA_32 | DA_LIMIT_4K | DA_DPL2
+    LABEL_DESC_MEMC_3:  Descriptor  00000000h,      0fffffh,    DA_C | DA_32 | DA_LIMIT_4K | DA_DPL3
+    LABEL_DESC_MEMD_3:  Descriptor  00000000h,      0fffffh,    DA_DRW | DA_32 | DA_LIMIT_4K | DA_DPL3
     LABEL_DESC_VIDEO:   Descriptor  000b8000h,      0ffffh,     DA_DRW | DA_DPL3
 GDT_LEN         equ     $ - LABEL_GDT
 GDT_PTR         dw      GDT_LEN - 1
                 dd      0
-SELECTOR_MEMC   equ     LABEL_DESC_MEMC - LABEL_GDT
-SELECTOR_MEMD   equ     LABEL_DESC_MEMD - LABEL_GDT
+SELECTOR_MEMC_0 equ     LABEL_DESC_MEMC_0 - LABEL_GDT
+SELECTOR_MEMD_0 equ     LABEL_DESC_MEMD_0 - LABEL_GDT
+
 SELECTOR_VIDEO  equ     LABEL_DESC_VIDEO - LABEL_GDT
 
 
@@ -73,7 +80,7 @@ CHECK_MEM_SUCCESS:
     mov     cr0,    eax
 
     ;long jump
-    jmp dword   SELECTOR_MEMC:SETUP32_ENTRY
+    jmp dword   SELECTOR_MEMC_0:SETUP32_ENTRY
 
 [SECTION .stack32]
 [BITS 32]
@@ -85,7 +92,7 @@ STACK32_TOP equ     $ - 1
 [BITS 32]
 SETUP32_ENTRY:
     ;init segment register for protect mode
-    mov     ax,     SELECTOR_MEMD
+    mov     ax,     SELECTOR_MEMD_0
     mov     ds,     ax
     mov     es,     ax
     mov     ss,     ax
@@ -232,7 +239,7 @@ INIT_PAGE_TBL_LOOP:
     jmp     PAGING_OK
 PAGING_OK:
     ;ds = es = MEMD
-    mov     ax,     SELECTOR_MEMD
+    mov     ax,     SELECTOR_MEMD_0
     mov     es,     ax
 
 ;record memdata address

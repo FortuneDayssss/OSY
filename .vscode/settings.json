@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "process.h": "c"
+        "process.h": "c",
+        "protect.h": "c",
+        "type.h": "c"
     }
 }

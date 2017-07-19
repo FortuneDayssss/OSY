@@ -58,7 +58,7 @@ void init_idt_descriptor(unsigned char _vector,
     Gate* gate_ptr = &idt[_vector];
     uint32_t base = (uint32_t)handler;
     gate_ptr -> offset_low = base & 0xFFFF;
-    gate_ptr -> selector = SELECTOR_MEMC;
+    gate_ptr -> selector = SELECTOR_MEMC_0;
     gate_ptr -> dcount = 0;
     gate_ptr -> attr = type | (privilege << 5);
     gate_ptr -> offset_high = (base >> 16) & 0xFFFF;
@@ -130,13 +130,15 @@ void init_interrupt(){
 
 }
 
-void init_tss(){
+void init_tss_descriptor(){
     memset(&tss, 0, sizeof(TSS));
-    tss.ss0 = SELECTOR_MEMD;
+    tss.ss0 = SELECTOR_MEMD_0;
+    tss.ss1 = SELECTOR_MEMD_1;
+    tss.ss2 = SELECTOR_MEMD_2;
     tss.esp0 = 0xFFF;
     init_descriptor(
         &gdt[INDEX_TSS], 
-        (uint32_t)vir2phyaddr(seg2phyaddr(SELECTOR_MEMD), &tss), 
+        (uint32_t)vir2phyaddr(seg2phyaddr(SELECTOR_MEMD_0), &tss), 
         sizeof(tss) - 1, 
         DA_386TSS
     );
