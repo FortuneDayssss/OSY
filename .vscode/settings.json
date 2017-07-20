@@ -2,6 +2,7 @@
     "files.associations": {
         "process.h": "c",
         "protect.h": "c",
-        "type.h": "c"
+        "type.h": "c",
+        "global.c": "cpp"
     }
 }

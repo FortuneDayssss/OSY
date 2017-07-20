@@ -84,9 +84,10 @@ void init_8259A(){
     out_byte(INT_S_CTLMASK, 0xFF);              //ocw1 => slave8259A
 
     //init irq
-    for(int i = 0; i < IRQ_NUMBER; i++){
+    for(int i = 0; i < IRQ_NUMBER; i++){//dummy irq
         irq_table[i] = dummy_irq;
     }
+    irq_table[0];
 }
 
 void init_interrupt(){

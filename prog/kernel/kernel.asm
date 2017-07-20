@@ -7,6 +7,7 @@ extern exception_handler
 extern dummy_irq
 extern irq_table
 extern test
+extern schedule_output_test
 extern get_next_process
 
 extern current_process
@@ -142,49 +143,24 @@ exception:
 	hlt
 
 ;------hardware interrupt-------------------------------------------------------
-%macro	hwint_master	1
-	
-%endmacro
-
-
-ALIGN	16
-hwint00:		; Interrupt routine for irq 0 (the clock).
-	pushad							;save registers state
-	mov		ebx,	[current_process]
-	mov	dword	[ebx + PCB_OFFSET_TESP],	esp
-
+%macro	before_irq_handler	1
+	pushad
 	in		al,		INT_M_CTLMASK
-	or		al,		(1 << 0)
+	or		al,		(1 << %1)
 	out		INT_M_CTLMASK,	al
 	mov		al,		EOI
 	out		INT_M_CTL,	al
-	sti
-	
-	mov		ax,		ss				;change ds & es to kernel mode
+	mov		ax,		ss
 	mov		ds,		ax
 	mov		es,		ax
+	mov		fs,		ax
+	sti
+%endmacro
 
-	call	get_next_process
-	call	test
-	mov		eax,	[current_process]
-	mov		ebx,	[next_process]
-	cmp		eax,	ebx
-	jz		SCHEDULE_OK
-
-	mov		[current_process],	ebx
-	mov		esp,	[current_process]
-	lea		eax,	[esp + PCB_OFFSET_STACK0TOP]
-	mov		[tss + TSS_OFFSET_SP0],	eax
-	lea		eax,	[esp + PCB_OFFSET_STACK1TOP]
-	mov		[tss + TSS_OFFSET_SP1],	eax
-	lea		eax,	[esp + PCB_OFFSET_STACK2TOP]
-	mov		[tss + TSS_OFFSET_SP2],	eax
-	lea		eax,	[esp + PCB_OFFSET_TESP]
-	mov		esp,	[eax]
-SCHEDULE_OK:
+%macro	after_irq_handler	1
 	cli
 	in		al,		INT_M_CTLMASK
-	and		al,		~(1 << 0)
+	and		al,		~(1 << %1)
 	out		INT_M_CTLMASK,	al
 	mov		ax,		SELECTOR_MEMD_3
 	mov		ds,		ax
@@ -194,43 +170,74 @@ SCHEDULE_OK:
 	mov		gs,		ax
 	popad
 	iretd
+%endmacro
+
+
+ALIGN	16
+hwint00:		; Interrupt routine for irq 0 (the clock).
+	before_irq_handler	0
+	mov		ebx,	[current_process]
+	mov	dword	[ebx + PCB_OFFSET_ESP],	esp
+	call	get_next_process
+	mov		eax,	[current_process]
+	mov		ebx,	[next_process]
+	cmp		eax,	ebx
+	jz		SCHEDULE_OK
+
+	pushad											;-----
+	call	schedule_output_test					;test output "schedule!"
+	popad											;-----
+	mov		[current_process],	ebx
+	mov		esp,	[current_process]
+	lea		eax,	[esp + PCB_OFFSET_STACK0TOP]
+	mov		[tss + TSS_OFFSET_SP0],	eax
+	lea		eax,	[esp + PCB_OFFSET_STACK1TOP]
+	mov		[tss + TSS_OFFSET_SP1],	eax
+	lea		eax,	[esp + PCB_OFFSET_STACK2TOP]
+	mov		[tss + TSS_OFFSET_SP2],	eax
+	lea		eax,	[esp + PCB_OFFSET_ESP]
+	mov		esp,	[eax]
+SCHEDULE_OK:
+	after_irq_handler	0
 
 ALIGN	16
 hwint01:		; Interrupt routine for irq 1 (keyboard)
-	pushad
-	call test
-	popad
-	mov		al,		EOI
-	out		INT_M_CTL,	al
+	before_irq_handler	1
+	call	test
 	in		al,		60h
 	or		al,		80h
 	out		60h,	al
-	iretd
-	;hwint_master	1
+	after_irq_handler	1
 
 ALIGN	16
 hwint02:		; Interrupt routine for irq 2 (cascade!)
-	hwint_master	2
+	before_irq_handler	2
+	after_irq_handler	2
 
 ALIGN	16
 hwint03:		; Interrupt routine for irq 3 (second serial)
-	hwint_master	3
+	before_irq_handler	3
+	after_irq_handler	3
 
 ALIGN	16
 hwint04:		; Interrupt routine for irq 4 (first serial)
-	hwint_master	4
+	before_irq_handler	4
+	after_irq_handler	4
 
 ALIGN	16
 hwint05:		; Interrupt routine for irq 5 (XT winchester)
-	hwint_master	5
+	before_irq_handler	5
+	after_irq_handler	5
 
 ALIGN	16
 hwint06:		; Interrupt routine for irq 6 (floppy)
-	hwint_master	6
+	before_irq_handler	6
+	after_irq_handler	6
 
 ALIGN	16
 hwint07:		; Interrupt routine for irq 7 (printer)
-	hwint_master	7
+	before_irq_handler	7
+	after_irq_handler	7
 
 ; ---------------------------------
 %macro	hwint_slave	1
@@ -273,10 +280,6 @@ ALIGN	16
 hwint15:		; Interrupt routine for irq 15
 	hwint_slave	15
 
-
-save:
-    ret
-
 change_to_user_mode:
 	mov		esp,	[current_process]
 	lea		eax,	[esp + PCB_OFFSET_STACK0TOP]
@@ -285,7 +288,7 @@ change_to_user_mode:
 	mov		[tss + TSS_OFFSET_SP1],	eax
 	lea		eax,	[esp + PCB_OFFSET_STACK2TOP]
 	mov		[tss + TSS_OFFSET_SP2],	eax
-	lea		eax,	[esp + PCB_OFFSET_TESP]
+	lea		eax,	[esp + PCB_OFFSET_ESP]
 	mov		esp,	[eax]
 	mov		ax,		SELECTOR_MEMD_3
 	mov		ds,		ax

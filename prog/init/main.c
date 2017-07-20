@@ -13,13 +13,20 @@ void sleep(int time){
             ;
 }
 
-void test(){
+void schedule_output_test(){
+    upRollScreen();
     printString("schedule!\n", -1);
+}
+
+void test(){
+    upRollScreen();
+    printString("test!\n", -1);
 }
 
 void p1test(){
     while(1){
         printString("p1---   ", -1);
+        sleep(10);
         // sleep(100);
     }
 }
@@ -27,6 +34,7 @@ void p1test(){
 void p2test(){
     while(1){
         printString("p2---   ", -1);
+        sleep(10);
         // sleep(100);
     }
 }
