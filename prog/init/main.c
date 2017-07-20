@@ -5,8 +5,6 @@
 #include "print.h"
 #include "type.h"
 
-void change_to_user_mode();//test, todo
-
 void sleep(int time){
     for(int i = 0; i < time; i++)
         for(int i = 0; i < 10000; i++)
@@ -33,7 +31,10 @@ void p1test(){
 
 void p2test(){
     while(1){
-        printString("p2---   ", -1);
+        //printString("p2---   ", -1);
+        __asm__(
+            "int    $0x80\n\t"
+        );
         sleep(10);
         // sleep(100);
     }

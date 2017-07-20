@@ -52,6 +52,7 @@ global	hwint12
 global	hwint13
 global	hwint14
 global	hwint15
+global	system_call
 
 %include "asm/macro.inc"
 [section .bss]
@@ -139,7 +140,7 @@ copr_error:
 
 exception:
 	call    exception_handler
-	add     esp,    4*2
+	add     esp,    4 * 2
 	hlt
 
 ;------hardware interrupt-------------------------------------------------------
@@ -279,6 +280,25 @@ hwint14:		; Interrupt routine for irq 14 (AT winchester)
 ALIGN	16
 hwint15:		; Interrupt routine for irq 15
 	hwint_slave	15
+
+system_call:
+	pushad
+	mov		ax,		ss
+	mov		ds,		ax
+	mov		es,		ax
+	mov		fs,		ax
+	sti
+	call	test
+	cli
+	mov		ax,		SELECTOR_MEMD_3
+	mov		ds,		ax
+	mov		es,		ax
+	mov		fs,		ax
+	mov		ax,		SELECTOR_VIDEO
+	mov		gs,		ax
+	popad
+	iretd
+
 
 change_to_user_mode:
 	mov		esp,	[current_process]

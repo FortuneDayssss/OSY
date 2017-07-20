@@ -129,6 +129,8 @@ void init_interrupt(){
     init_idt_descriptor(INT_VECTOR_IRQ8 + 6, DA_386IGate, hwint14, PRIVILEGE_KERNEL);
     init_idt_descriptor(INT_VECTOR_IRQ8 + 7, DA_386IGate, hwint15, PRIVILEGE_KERNEL);
 
+    //system call
+    init_idt_descriptor(INT_VECTOR_SYSTEM_CALL, DA_386IGate, system_call, PRIVILEGE_USER);
 }
 
 void init_tss_descriptor(){

@@ -138,6 +138,7 @@ typedef struct{
 #define	INT_VECTOR_PROTECTION	0xD
 #define	INT_VECTOR_PAGE_FAULT	0xE
 #define	INT_VECTOR_COPROC_ERR	0x10
+#define INT_VECTOR_SYSTEM_CALL	0x80
 
 /* 中断向量 */
 #define	INT_VECTOR_IRQ0			0x20
@@ -178,6 +179,8 @@ void init_interrupt();
 void init_tss_descriptor();
 void exception_handler(int vec_no, int err_code, int eip, int cs, int eflags);
 
+//change_to_user_mode
+void change_to_user_mode();
 
 //interrupt handler
 void divide_error();
@@ -212,5 +215,6 @@ void hwint12();
 void hwint13();
 void hwint14();
 void hwint15();
+void system_call();
 
 #endif
