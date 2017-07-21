@@ -26,4 +26,7 @@ extern int dispPos;
 //irq
 extern irq_handler  irq_table[IRQ_NUMBER];
 
+//system ticks
+extern uint64_t     sys_ticks;
+
 #endif

@@ -17,6 +17,7 @@ extern tss
 
 global _start
 global change_to_user_mode
+global	switch_to_next_process
 
 ;exception
 global divide_error
@@ -145,7 +146,7 @@ exception:
 	hlt
 
 ;------hardware interrupt-------------------------------------------------------
-%macro	before_irq_handler	1
+%macro	hwint_master	1
 	pushad
 	in		al,		INT_M_CTLMASK
 	or		al,		(1 << %1)
@@ -157,9 +158,9 @@ exception:
 	mov		es,		ax
 	mov		fs,		ax
 	sti
-%endmacro
 
-%macro	after_irq_handler	1
+	call	[irq_table + %1 * 4]					;handler
+
 	cli
 	in		al,		INT_M_CTLMASK
 	and		al,		(~(1 << %1))&(011111111b)
@@ -177,69 +178,37 @@ exception:
 
 ALIGN	16
 hwint00:		; Interrupt routine for irq 0 (the clock).
-	before_irq_handler	0
-	mov		ebx,	[current_process]
-	mov	dword	[ebx + PCB_OFFSET_ESP],	esp
-	call	get_next_process
-	mov		eax,	[current_process]
-	mov		ebx,	[next_process]
-	cmp		eax,	ebx
-	jz		SCHEDULE_OK
-
-	pushad											;-----
-	call	schedule_output_test					;test output "schedule!"
-	popad											;-----
-	mov		[current_process],	ebx
-	mov		esp,	[current_process]
-	lea		eax,	[esp + PCB_OFFSET_STACK0TOP]
-	mov		[tss + TSS_OFFSET_SP0],	eax
-	lea		eax,	[esp + PCB_OFFSET_STACK1TOP]
-	mov		[tss + TSS_OFFSET_SP1],	eax
-	lea		eax,	[esp + PCB_OFFSET_STACK2TOP]
-	mov		[tss + TSS_OFFSET_SP2],	eax
-	lea		eax,	[esp + PCB_OFFSET_ESP]
-	mov		esp,	[eax]
-SCHEDULE_OK:
-	after_irq_handler	0
+	hwint_master	0
 
 ALIGN	16
 hwint01:		; Interrupt routine for irq 1 (keyboard)
-	before_irq_handler	1
-	;todo handler
-	in		al,		60h
-	or		al,		80h
-	out		60h,	al
-	after_irq_handler	1
-
+	hwint_master	1
+	;in		al,		60h;todo
+	;or		al,		80h
+	;out	60h,	al
+	
 ALIGN	16
 hwint02:		; Interrupt routine for irq 2 (cascade!)
-	before_irq_handler	2
-	after_irq_handler	2
 
 ALIGN	16
 hwint03:		; Interrupt routine for irq 3 (second serial)
-	before_irq_handler	3
-	after_irq_handler	3
+	hwint_master	3
 
 ALIGN	16
 hwint04:		; Interrupt routine for irq 4 (first serial)
-	before_irq_handler	4
-	after_irq_handler	4
+	hwint_master	4
 
 ALIGN	16
 hwint05:		; Interrupt routine for irq 5 (XT winchester)
-	before_irq_handler	5
-	after_irq_handler	5
+	hwint_master	5
 
 ALIGN	16
 hwint06:		; Interrupt routine for irq 6 (floppy)
-	before_irq_handler	6
-	after_irq_handler	6
+	hwint_master	6
 
 ALIGN	16
 hwint07:		; Interrupt routine for irq 7 (printer)
-	before_irq_handler	7
-	after_irq_handler	7
+	hwint_master	7
 
 ; ---------------------------------
 %macro	hwint_slave	1
@@ -327,4 +296,42 @@ change_to_user_mode:
 	xor		eax,	eax
 	popad
 	sti
+	iretd
+
+switch_to_next_process:
+	add		esp,	4								;throw return address of 'clock_handler'
+	mov		ebx,	[current_process]
+	mov	dword	[ebx + PCB_OFFSET_ESP],	esp
+	mov		eax,	[current_process]
+	mov		ebx,	[next_process]
+	cmp		eax,	ebx
+	jz		STACK_SWITCH_OK
+
+	pushad											;-----
+	call	schedule_output_test					;test output "schedule!"
+	popad											;-----
+	mov		[current_process],	ebx
+	mov		esp,	[current_process]
+	lea		eax,	[esp + PCB_OFFSET_STACK0TOP]
+	mov		[tss + TSS_OFFSET_SP0],	eax
+	lea		eax,	[esp + PCB_OFFSET_STACK1TOP]
+	mov		[tss + TSS_OFFSET_SP1],	eax
+	lea		eax,	[esp + PCB_OFFSET_STACK2TOP]
+	mov		[tss + TSS_OFFSET_SP2],	eax
+	lea		eax,	[esp + PCB_OFFSET_ESP]
+	mov		esp,	[eax]
+STACK_SWITCH_OK:
+
+
+	cli
+	in		al,		INT_M_CTLMASK
+	and		al,		(~(1 << 0))&(011111111b)
+	out		INT_M_CTLMASK,	al
+	mov		ax,		SELECTOR_MEMD_3
+	mov		ds,		ax
+	mov		es,		ax
+	mov		fs,		ax
+	mov		ax,		SELECTOR_VIDEO
+	mov		gs,		ax
+	popad
 	iretd

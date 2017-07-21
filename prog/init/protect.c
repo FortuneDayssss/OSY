@@ -3,6 +3,7 @@
 #include "global.h"
 #include "string.h"
 #include "print.h"
+#include "irqhandler.h"
 
 void out_byte(uint16_t port, uint8_t value){
     __asm__ __volatile__(
@@ -70,6 +71,10 @@ void dummy_irq(int irq){
     printString("\n", -1);
 }
 
+void set_irq_handler(int vec_no, irq_handler handler){
+    irq_table[vec_no] = handler;
+}
+
 void init_8259A(){
     out_byte(INT_M_CTL, 0x11);                  //icw1 => master8259A
     out_byte(INT_S_CTL, 0x11);                  //icw1 => slave8259A
@@ -87,7 +92,7 @@ void init_8259A(){
     for(int i = 0; i < IRQ_NUMBER; i++){//dummy irq
         irq_table[i] = dummy_irq;
     }
-    irq_table[0];
+    set_irq_handler(CLOCK_IRQ, clock_handler);
 }
 
 void init_interrupt(){

@@ -23,3 +23,6 @@ int dispPos = 0;
 
 //irq
 irq_handler irq_table[IRQ_NUMBER];
+
+//system ticks
+uint64_t    sys_ticks = 0;

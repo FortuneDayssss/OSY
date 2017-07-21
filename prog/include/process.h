@@ -28,6 +28,7 @@ typedef struct{
     uint32_t        tick;
 }PCB;
 
-void get_next_process();
+void schedule();                    //process.c
+void switch_to_next_process();      //kernel.asm
 
 #endif

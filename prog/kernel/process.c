@@ -1,12 +1,8 @@
 #include "process.h"
 #include "global.h"
 
-void get_next_process(){
+void schedule(){
     next_process = current_process;
-    if(current_process->tick > 0){
-        current_process->tick--;
-        return;
-    }
     current_process->tick = 20;
     int next_process_index = 0;
     for(int i = 0; i < MAX_PROCESS_NUM; i++){
