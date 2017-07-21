@@ -26,14 +26,18 @@ void p1test(){
 }
 
 void p2test(){
+    uint64_t tick;
     while(1){
         //printString("p2---   ", -1);
         //system call "test"
         __asm__(
             "int    $0x80\n\t"
-            :
-            :"a"(__NR_test)
+            :"=a"(tick)
+            :"a"(__NR_times)
         );
+        upRollScreen();
+        printInt32((uint32_t)tick);
+        upRollScreen();
         sleep(100);
         // sleep(100);
     }

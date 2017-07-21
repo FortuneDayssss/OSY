@@ -252,7 +252,13 @@ hwint15:		; Interrupt routine for irq 15
 	hwint_slave	15
 
 system_call:
-	pushad
+	push	ebx
+	push	ecx
+	push	edx
+	push	esp
+	push	ebp
+	push	esi
+	push	edi
 	mov		dx,		ss
 	mov		ds,		dx
 	mov		es,		dx
@@ -262,13 +268,19 @@ system_call:
 	call	[system_call_table + 4 * eax]
 
 	cli
-	mov		ax,		SELECTOR_MEMD_3
-	mov		ds,		ax
-	mov		es,		ax
-	mov		fs,		ax
-	mov		ax,		SELECTOR_VIDEO
-	mov		gs,		ax
-	popad
+	mov		bx,		SELECTOR_MEMD_3
+	mov		ds,		bx
+	mov		es,		bx
+	mov		fs,		bx
+	mov		bx,		SELECTOR_VIDEO
+	mov		gs,		bx
+	pop		edi
+	pop		esi
+	pop		ebp
+	pop		esp
+	pop		edx
+	pop		ecx
+	pop		ebx
 	iretd
 
 
@@ -321,8 +333,6 @@ switch_to_next_process:
 	lea		eax,	[esp + PCB_OFFSET_ESP]
 	mov		esp,	[eax]
 STACK_SWITCH_OK:
-
-
 	cli
 	in		al,		INT_M_CTLMASK
 	and		al,		(~(1 << 0))&(011111111b)
