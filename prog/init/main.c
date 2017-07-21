@@ -4,6 +4,7 @@
 #include "string.h"
 #include "print.h"
 #include "type.h"
+#include "systemcall.h"
 
 void sleep(int time){
     for(int i = 0; i < time; i++)
@@ -14,11 +15,6 @@ void sleep(int time){
 void schedule_output_test(){
     upRollScreen();
     printString("schedule!\n", -1);
-}
-
-void test(){
-    upRollScreen();
-    printString("test!\n", -1);
 }
 
 void p1test(){
@@ -32,10 +28,13 @@ void p1test(){
 void p2test(){
     while(1){
         //printString("p2---   ", -1);
+        //system call "test"
         __asm__(
             "int    $0x80\n\t"
+            :
+            :"a"(__NR_test)
         );
-        sleep(10);
+        sleep(100);
         // sleep(100);
     }
 }

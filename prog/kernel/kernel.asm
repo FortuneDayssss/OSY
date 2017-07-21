@@ -6,6 +6,7 @@ extern init_kernel
 extern exception_handler
 extern dummy_irq
 extern irq_table
+extern system_call_table
 extern test
 extern schedule_output_test
 extern get_next_process
@@ -161,7 +162,7 @@ exception:
 %macro	after_irq_handler	1
 	cli
 	in		al,		INT_M_CTLMASK
-	and		al,		~(1 << %1)
+	and		al,		(~(1 << %1))&(011111111b)
 	out		INT_M_CTLMASK,	al
 	mov		ax,		SELECTOR_MEMD_3
 	mov		ds,		ax
@@ -204,7 +205,7 @@ SCHEDULE_OK:
 ALIGN	16
 hwint01:		; Interrupt routine for irq 1 (keyboard)
 	before_irq_handler	1
-	call	test
+	;todo handler
 	in		al,		60h
 	or		al,		80h
 	out		60h,	al
@@ -283,12 +284,14 @@ hwint15:		; Interrupt routine for irq 15
 
 system_call:
 	pushad
-	mov		ax,		ss
-	mov		ds,		ax
-	mov		es,		ax
-	mov		fs,		ax
+	mov		dx,		ss
+	mov		ds,		dx
+	mov		es,		dx
+	mov		fs,		dx
 	sti
-	call	test
+	
+	call	[system_call_table + 4 * eax]
+
 	cli
 	mov		ax,		SELECTOR_MEMD_3
 	mov		ds,		ax

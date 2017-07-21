@@ -7,5 +7,6 @@ typedef unsigned int    uint32_t;
 
 typedef void            (*interrupt_handler)();
 typedef void            (*irq_handler)();
+typedef void            (*system_call_handler)();
 
 #endif
