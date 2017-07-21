@@ -42,6 +42,7 @@ void init_kernel(){
     uint32_t* idt_base_ptr = (uint32_t*)(&idt_ptr[2]);
     *idt_limit_ptr = IDT_SIZE * sizeof(Gate) - 1;
     *idt_base_ptr = (uint32_t)&idt;
+    init_clock_frequency();
     init_interrupt();
     init_tss_descriptor();
 

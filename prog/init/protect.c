@@ -153,6 +153,13 @@ void init_tss_descriptor(){
     tss.iobase = sizeof(tss);
 }
 
+void init_clock_frequency(){
+    //init 8253 (frequency ~~= interrupt/10ms)
+    out_byte(TIMER_MODE, RATE_GENERATOR);
+    out_byte(TIMER0, (uint8_t) (TIMER_FREQ/HZ) );
+    out_byte(TIMER0, (uint8_t) ((TIMER_FREQ/HZ) >> 8));
+}
+
 void exception_handler(int vec_no, int err_code, int eip, int cs, int eflags){
 	char err_description[][64] = {	
         "#DE Divide Error",

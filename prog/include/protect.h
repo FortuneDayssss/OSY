@@ -150,6 +150,16 @@ typedef struct{
 #define	INT_S_CTL		0xA0	/* I/O port for second interrupt controller  <Slave>  */
 #define	INT_S_CTLMASK	0xA1	/* setting bits in this port disables ints   <Slave>  */
 
+/* 8253/8254 PIT (Programmable Interval Timer) */
+#define TIMER0         0x40 	/* I/O port for timer channel 0 */
+#define TIMER_MODE     0x43 	/* I/O port for timer mode control */
+#define RATE_GENERATOR 0x34 	/* 00-11-010-0 :
+			     			 	 * Counter0 - LSB then MSB - rate generator - binary
+			     			 	 */
+#define TIMER_FREQ     1193182L	/* clock frequency for timer in PC and AT */
+#define HZ             100  	/* clock freq (software settable on IBM-PC) */
+
+
 //hardware interrupt
 #define IRQ_NUMBER				16
 #define CLOCK_IRQ				0
@@ -177,10 +187,11 @@ void dummy_irq(int irq);
 void init_8259A();
 void init_interrupt();
 void init_tss_descriptor();
+void init_clock_frequency();
 void exception_handler(int vec_no, int err_code, int eip, int cs, int eflags);
 
-//change_to_user_mode
-void change_to_user_mode();
+//switch_to_user_mode
+void switch_to_user_mode();
 
 //interrupt handler
 void divide_error();

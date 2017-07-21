@@ -94,7 +94,7 @@ int main(){
     printInt32(a);
     upRollScreen();
 
-    change_to_user_mode();
+    switch_to_user_mode();
 
     while(1){}
 }

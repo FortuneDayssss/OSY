@@ -16,7 +16,7 @@ extern next_process
 extern tss
 
 global _start
-global change_to_user_mode
+global switch_to_user_mode
 global	switch_to_next_process
 
 ;exception
@@ -284,7 +284,7 @@ system_call:
 	iretd
 
 
-change_to_user_mode:
+switch_to_user_mode:
 	mov		esp,	[current_process]
 	lea		eax,	[esp + PCB_OFFSET_STACK0TOP]
 	mov		[tss + TSS_OFFSET_SP0],	eax

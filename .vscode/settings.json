@@ -3,6 +3,7 @@
         "process.h": "c",
         "protect.h": "c",
         "type.h": "c",
-        "global.c": "cpp"
+        "global.c": "cpp",
+        "string.h": "c"
     }
 }
