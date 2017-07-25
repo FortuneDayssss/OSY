@@ -319,9 +319,10 @@ switch_to_next_process:
 	cmp		eax,	ebx
 	jz		STACK_SWITCH_OK
 
-	pushad											;-----
-	call	schedule_output_test					;test output "schedule!"
-	popad											;-----
+;	pushad											;-----
+;	call	schedule_output_test					;test output "schedule!"
+;	popad											;-----
+
 	mov		[current_process],	ebx
 	mov		esp,	[current_process]
 	lea		eax,	[esp + PCB_OFFSET_STACK0TOP]

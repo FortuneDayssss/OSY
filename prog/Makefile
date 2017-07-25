@@ -15,6 +15,7 @@ OBJS		= kernel/kernel.o \
 				kernel/clock.o \
 				kernel/global.o \
 				kernel/process.o \
+				kernel/keyboard.o \
 				kernel/systemcall.o \
 				init/main.o \
 				init/init.o \
@@ -41,7 +42,7 @@ realclean:
 buildimg:
 	dd if=boot/bootsec.bin of=../a.img bs=512 count=1 conv=notrunc
 	dd if=boot/setup.bin of=../a.img bs=512 count=3 seek=1 conv=notrunc
-	dd if=kernel.bin of=../a.img bs=512 count=30 seek=4 conv=notrunc
+	dd if=kernel.bin of=../a.img bs=512 count=50 seek=4 conv=notrunc
 
 boot/bootsec.bin: boot/bootsec.asm
 	$(ASM) $(ASMBFLAGS) -o $@ $<
@@ -62,6 +63,9 @@ kernel/global.o: kernel/global.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 kernel/process.o: kernel/process.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+kernel/keyboard.o: kernel/keyboard.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 kernel/systemcall.o: kernel/systemcall.c

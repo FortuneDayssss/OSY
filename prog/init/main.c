@@ -19,7 +19,7 @@ void schedule_output_test(){
 
 void p1test(){
     while(1){
-        printString("p1---   ", -1);
+        //printString("p1---   ", -1);
         sleep(10);
         // sleep(100);
     }
@@ -35,9 +35,9 @@ void p2test(){
             :"=a"(tick)
             :"a"(__NR_times)
         );
-        upRollScreen();
-        printInt32((uint32_t)tick);
-        upRollScreen();
+        // upRollScreen();
+        // printInt32((uint32_t)tick);
+        // upRollScreen();
         sleep(100);
         // sleep(100);
     }

@@ -3,6 +3,7 @@
 #include "type.h"
 #include "protect.h"
 #include "process.h"
+#include "keyboard.h"
 
 //GDT
 extern uint8_t      gdt_ptr[6];//limit(2Byte)  Base(4Byte)

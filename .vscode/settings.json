@@ -4,6 +4,8 @@
         "protect.h": "c",
         "type.h": "c",
         "global.c": "cpp",
-        "string.h": "c"
+        "string.h": "c",
+        "irqhandler.h": "c",
+        "keyboard.h": "c"
     }
 }

@@ -3,4 +3,6 @@
 
 void clock_handler();
 
+void keyboard_handler();
+
 #endif

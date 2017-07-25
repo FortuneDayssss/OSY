@@ -93,6 +93,7 @@ void init_8259A(){
         irq_table[i] = dummy_irq;
     }
     set_irq_handler(CLOCK_IRQ, clock_handler);
+    set_irq_handler(KEYBOARD_IRQ, keyboard_handler);
 }
 
 void init_interrupt(){

@@ -4,6 +4,7 @@
 #include "protect.h"
 #include "process.h"
 #include "string.h"
+#include "keyboard.h"
 
 //memory data
 void* memdata_ptr;
@@ -43,18 +44,8 @@ void init_kernel(){
     *idt_limit_ptr = IDT_SIZE * sizeof(Gate) - 1;
     *idt_base_ptr = (uint32_t)&idt;
     init_clock_frequency();
+    init_keyboard();
     init_interrupt();
     init_tss_descriptor();
-
-    //todo: delete
-    // //init ldt descriptor in gdt
-    // for(int i = 0; i < MAX_PROCESS_NUM; i++){
-    //     init_descriptor(
-    //         &gdt[(SELECTOR_LDT_FIRST + 8 * i) >> 3],
-    //         (uint32_t)vir2phyaddr(seg2phyaddr(SELECTOR_MEMC_0), &(pcb_table[i].ldt)),
-    //         LDT_SIZE * sizeof(Descriptor) - 1,
-    //         DA_LDT
-    //     );
-    // }
 
 }
