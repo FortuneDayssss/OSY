@@ -125,6 +125,7 @@ typedef struct{
 }KeyboardBuffer;
 
 void init_keyboard();
-
+void keyboard_read();
+uint32_t sys_keyboard_read(uint8_t* buf, uint32_t size);
 
 #endif

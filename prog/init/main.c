@@ -20,21 +20,32 @@ void schedule_output_test(){
 void p1test(){
     while(1){
         //printString("p1---   ", -1);
+        // keyboard_read();
+        test();
         sleep(10);
         // sleep(100);
     }
 }
 
 void p2test(){
-    uint64_t tick;
+    uint64_t tempres;
+    uint8_t tempbuf[20];
     while(1){
+        // printInt32(tempbuf);
+        // upRollScreen();
+        tempres = getcharfromkeybuffer(tempbuf, 19);
+        if(tempres > 0){
+            printString(tempbuf, tempres);
+        }
+        // printInt32(tempres);
         //printString("p2---   ", -1);
         //system call "test"
-        __asm__(
-            "int    $0x80\n\t"
-            :"=a"(tick)
-            :"a"(__NR_times)
-        );
+        // __asm__(
+            // "int    $0x80\n\t"
+            // :
+            // :"=a"(tick)
+            // :"a"(__NR_printkeyboardbuffer)
+        // );
         // upRollScreen();
         // printInt32((uint32_t)tick);
         // upRollScreen();
@@ -84,15 +95,12 @@ int main(){
     for(int i = 0; i < MAX_PROCESS_NUM; i++){
         init_dummy_process(&pcb_table[i]);
     }
-    init_process(&pcb_table[0], p1test);
+    init_process(&pcb_table[0], p2test);
     init_process(&pcb_table[1], p2test);
     pcb_table[0].state = PROCESS_RUNNING;
+    pcb_table[1].state = PROCESS_EMPTY;
 
     current_process = pcb_table;
-
-    int a = (int)p1test;
-    printInt32(a);
-    upRollScreen();
 
     switch_to_user_mode();
 

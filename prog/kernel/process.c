@@ -3,7 +3,7 @@
 
 void schedule(){
     next_process = current_process;
-    current_process->tick = 20;
+    current_process->tick = 200;
     int next_process_index = 0;
     for(int i = 0; i < MAX_PROCESS_NUM; i++){
         if(current_process == &pcb_table[i]){
@@ -22,4 +22,5 @@ void schedule(){
             break;
         }
     }
+
 }

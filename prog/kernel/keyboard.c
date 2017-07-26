@@ -153,6 +153,7 @@ int             scroll_lock;
 //local function declaration
 void set_leds();
 uint8_t keyboard_buffer_get();
+void keyboard_read();
 
 //keyboard.c
 void keyboard_handler(){
@@ -165,11 +166,11 @@ void keyboard_handler(){
             keyboard_buffer.head = keyboard_buffer.buffer;
         keyboard_buffer.count++;
     }
-    // if(scan_code != 0xFA){
-        uint32_t c = keymap[(scan_code & 0x7f) * 3];
+    // if(scan_code != 0xFA && (scan_code & FLAG_BREAK)){
+        // uint8_t c = (uint8_t)keymap[(scan_code & 0x7f) * 3];
         // printString("aaa", -1);
         // printInt32(scan_code);
-        printChar(&c);
+        // printChar(&c);
         // upRollScreen();
     // }
     //for test
@@ -177,13 +178,62 @@ void keyboard_handler(){
     //upRollScreen();
 }
 
+uint32_t sys_keyboard_read(uint8_t* buf, uint32_t size){
+    if(keyboard_buffer.count == 0)
+        return 0;
+    int res_size_counter = 0;
+    while(keyboard_buffer.count > 0 && res_size_counter < size){
+        uint8_t scan_code = keyboard_buffer_get();
+        if(scan_code == 0xe1){
+
+        }
+        else if(scan_code == 0xe0){
+
+        }
+        else{
+            int is_make_code = (scan_code & FLAG_BREAK ? 0 : 1);
+            int column = 0;
+            if(shift_left || shift_right){
+                column = 1;
+            }
+        
+            if(is_make_code){
+                buf[res_size_counter] = (uint8_t)(keymap[(scan_code & 0x7f) * 3]);
+                res_size_counter++;
+            }
+        }
+    }
+    return res_size_counter;
+}
+
 void keyboard_read(){
+    // printInt32(keyboard_buffer.count);
+    // upRollScreen();
     if(keyboard_buffer.count <= 0)
         return;
 
     uint8_t scan_code = keyboard_buffer_get();
 
-    //todo
+    if(scan_code == 0xe1){
+
+    }
+    else if(scan_code == 0xe0){
+
+    }
+    else{
+        int is_make_code = (scan_code & FLAG_BREAK ? 0 : 1);
+        int column = 0;
+        if(shift_left || shift_right){
+            column = 1;
+        }
+
+        
+        if(is_make_code){
+            // test();
+            uint8_t c = (uint8_t)(keymap[(scan_code & 0x7f) * 3]);
+            printChar(&c);
+        }
+    }
 }
 
 void init_keyboard(){
@@ -202,7 +252,7 @@ void init_keyboard(){
 
 uint8_t keyboard_buffer_get(){
     uint8_t scan_code;
-    while(keyboard_buffer.count <= 0){}
+    // while(keyboard_buffer.count <= 0){}
 
     __asm__(
         "cli\n\t"
@@ -217,7 +267,7 @@ uint8_t keyboard_buffer_get(){
     __asm__(
         "sti\n\t"
     );
-
+    return scan_code;
 }
 
 void set_leds(){

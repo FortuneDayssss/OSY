@@ -6,6 +6,7 @@
         "global.c": "cpp",
         "string.h": "c",
         "irqhandler.h": "c",
-        "keyboard.h": "c"
+        "keyboard.h": "c",
+        "systemcall.h": "c"
     }
 }

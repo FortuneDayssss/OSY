@@ -265,7 +265,11 @@ system_call:
 	mov		fs,		dx
 	sti
 	
+	push	ecx
+	push	ebx
 	call	[system_call_table + 4 * eax]
+	add		esp,	8
+
 
 	cli
 	mov		bx,		SELECTOR_MEMD_3
