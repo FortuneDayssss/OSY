@@ -5,6 +5,7 @@
 #include "print.h"
 #include "type.h"
 #include "systemcall.h"
+#include "tty.h"
 
 void sleep(int time){
     for(int i = 0; i < time; i++)
@@ -19,10 +20,12 @@ void schedule_output_test(){
 
 void p1test(){
     while(1){
-        //printString("p1---   ", -1);
-        // keyboard_read();
         test();
-        sleep(10);
+        // printString("p1---   ", -1);
+        // upRollScreen();
+        // keyboard_read();
+        //ttywrite("asdasdasd", -1);
+        sleep(100);
         // sleep(100);
     }
 }
@@ -54,36 +57,12 @@ void p2test(){
     }
 }
 
-int init_process(PCB* pcb, void (*startAddr)){
-    uint32_t* stackPointer = (uint32_t*)(&pcb->stack0[STACK_SIZE - 4]);//stack0 top
-    *stackPointer = SELECTOR_MEMD_3;
-    stackPointer--;
-    *stackPointer = (uint32_t)(&pcb->stack3[STACK_SIZE - 4]);//stack3 top
-    stackPointer--;
-    *stackPointer = 0x1202;//IF = 1, IOPL = 1
-    stackPointer--;
-    *stackPointer = SELECTOR_MEMC_3;
-    stackPointer--;
-    *stackPointer = (uint32_t)startAddr;
-    stackPointer--;
-    *stackPointer = 0;//eax
-    stackPointer--;
-    *stackPointer = 0;//ecx
-    stackPointer--;
-    *stackPointer = 0;//edx
-    stackPointer--;
-    *stackPointer = 0;//ebx
-    stackPointer--;
-    *stackPointer = (uint32_t)(&pcb->stack3[STACK_SIZE - 4]);//esp
-    stackPointer--;
-    *stackPointer = 0;//ebp
-    stackPointer--;
-    *stackPointer = 0;//esi
-    stackPointer--;
-    *stackPointer = 0;//edi
-    pcb->esp = (uint32_t)stackPointer;
-    pcb->state = PROCESS_READY;
-    pcb->tick = 20;
+void p3test(){
+    while(1){
+        printString("p3!\n", -1);
+        upRollScreen();
+        sleep(100);
+    }
 }
 
 int init_dummy_process(PCB* pcb){
@@ -95,10 +74,9 @@ int main(){
     for(int i = 0; i < MAX_PROCESS_NUM; i++){
         init_dummy_process(&pcb_table[i]);
     }
-    init_process(&pcb_table[0], p2test);
-    init_process(&pcb_table[1], p2test);
-    pcb_table[0].state = PROCESS_RUNNING;
-    pcb_table[1].state = PROCESS_EMPTY;
+    int pid = create_process(p1test, PRIVILEGE_USER, 0);
+    pcb_table[pid].state = PROCESS_RUNNING;
+    create_process(tty_main, PRIVILEGE_KERNEL, 0);
 
     current_process = pcb_table;
 

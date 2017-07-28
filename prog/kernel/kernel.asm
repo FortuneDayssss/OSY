@@ -183,9 +183,6 @@ hwint00:		; Interrupt routine for irq 0 (the clock).
 ALIGN	16
 hwint01:		; Interrupt routine for irq 1 (keyboard)
 	hwint_master	1
-	;in		al,		60h;todo
-	;or		al,		80h
-	;out	60h,	al
 	
 ALIGN	16
 hwint02:		; Interrupt routine for irq 2 (cascade!)
@@ -264,12 +261,11 @@ system_call:
 	mov		es,		dx
 	mov		fs,		dx
 	sti
-	
+
 	push	ecx
 	push	ebx
 	call	[system_call_table + 4 * eax]
 	add		esp,	8
-
 
 	cli
 	mov		bx,		SELECTOR_MEMD_3
@@ -292,10 +288,6 @@ switch_to_user_mode:
 	mov		esp,	[current_process]
 	lea		eax,	[esp + PCB_OFFSET_STACK0TOP]
 	mov		[tss + TSS_OFFSET_SP0],	eax
-	lea		eax,	[esp + PCB_OFFSET_STACK1TOP]
-	mov		[tss + TSS_OFFSET_SP1],	eax
-	lea		eax,	[esp + PCB_OFFSET_STACK2TOP]
-	mov		[tss + TSS_OFFSET_SP2],	eax
 	lea		eax,	[esp + PCB_OFFSET_ESP]
 	mov		esp,	[eax]
 	mov		ax,		SELECTOR_MEMD_3
@@ -331,10 +323,6 @@ switch_to_next_process:
 	mov		esp,	[current_process]
 	lea		eax,	[esp + PCB_OFFSET_STACK0TOP]
 	mov		[tss + TSS_OFFSET_SP0],	eax
-	lea		eax,	[esp + PCB_OFFSET_STACK1TOP]
-	mov		[tss + TSS_OFFSET_SP1],	eax
-	lea		eax,	[esp + PCB_OFFSET_STACK2TOP]
-	mov		[tss + TSS_OFFSET_SP2],	eax
 	lea		eax,	[esp + PCB_OFFSET_ESP]
 	mov		esp,	[eax]
 STACK_SWITCH_OK:

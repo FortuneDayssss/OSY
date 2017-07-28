@@ -2,6 +2,7 @@
 #define _PROCESS_H__
 #include "type.h"
 #include "protect.h"
+#include "tty.h"
 
 #define MAX_PROCESS_NUM     10
 #define STACK_SIZE          4*1024
@@ -16,8 +17,6 @@
 
 typedef struct{
     uint8_t         stack0[STACK_SIZE];
-    uint8_t         stack1[STACK_SIZE];
-    uint8_t         stack2[STACK_SIZE];
     uint8_t         stack3[STACK_SIZE];
     
     uint32_t        esp;
@@ -26,9 +25,10 @@ typedef struct{
     char            name[32];
     uint32_t        state;
     uint32_t        tick;
+    TTY*            tty;
 }PCB;
 
 void schedule();                    //process.c
 void switch_to_next_process();      //kernel.asm
-
+uint32_t create_process(void (*startAddr), uint32_t privilege, uint32_t nr_tty);//process.c
 #endif

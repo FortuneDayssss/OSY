@@ -166,6 +166,7 @@ void keyboard_handler(){
             keyboard_buffer.head = keyboard_buffer.buffer;
         keyboard_buffer.count++;
     }
+
     // if(scan_code != 0xFA && (scan_code & FLAG_BREAK)){
         // uint8_t c = (uint8_t)keymap[(scan_code & 0x7f) * 3];
         // printString("aaa", -1);

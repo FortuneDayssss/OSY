@@ -118,7 +118,6 @@ typedef struct{
 
 /* 权限 */
 #define	PRIVILEGE_KERNEL		0
-#define	PRIVILEGE_TASK			1
 #define	PRIVILEGE_USER			3
 
 /* 中断向量 */

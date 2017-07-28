@@ -1,12 +1,14 @@
 ENTRYPOINT	= 0x00010000
 ENTRYOFFSET	= 0x00000000
+SETUPSECNUM	= 3
+SYSSECNUM	= 60
 
 ASM		= nasm
 CC		= gcc
 LD		= ld
 ASMBFLAGS	= -I boot/include/
 ASMKFLAGS	= -I include/ -f elf
-CFLAGS		= -I include/ -c -fno-builtin -m32 -O0 -std=c99
+CFLAGS		= -I include/ -c -fno-builtin -m32 -O0 -std=c99 -fno-stack-protector -fno-pie
 LDFLAGS		= -s -Ttext $(ENTRYPOINT) -m elf_i386
 
 OSBOOT		= boot/bootsec.bin boot/setup.bin
@@ -17,6 +19,7 @@ OBJS		= kernel/kernel.o \
 				kernel/process.o \
 				kernel/keyboard.o \
 				kernel/systemcall.o \
+				kernel/tty.o \
 				init/main.o \
 				init/init.o \
 				init/protect.o \
@@ -42,7 +45,7 @@ realclean:
 buildimg:
 	dd if=boot/bootsec.bin of=../a.img bs=512 count=1 conv=notrunc
 	dd if=boot/setup.bin of=../a.img bs=512 count=3 seek=1 conv=notrunc
-	dd if=kernel.bin of=../a.img bs=512 count=50 seek=4 conv=notrunc
+	dd if=kernel.bin of=../a.img bs=512 count=$(SYSSECNUM) seek=`expr 1 + $(SETUPSECNUM)` conv=notrunc
 
 boot/bootsec.bin: boot/bootsec.asm
 	$(ASM) $(ASMBFLAGS) -o $@ $<
@@ -69,6 +72,9 @@ kernel/keyboard.o: kernel/keyboard.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 kernel/systemcall.o: kernel/systemcall.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+kernel/tty.o: kernel/tty.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 init/init.o: init/init.c

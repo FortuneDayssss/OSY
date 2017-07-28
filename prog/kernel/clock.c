@@ -4,6 +4,7 @@
 
 void clock_handler(){
     sys_ticks++;
+
     current_process->tick--;
     if(current_process->tick > 0)
        return;

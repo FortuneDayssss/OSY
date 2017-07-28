@@ -1,6 +1,7 @@
 #include "global.h"
 #include "protect.h"
 #include "type.h"
+#include "tty.h"
 
 //GDT
 uint8_t     gdt_ptr[6];//limit(2Byte)  Base(4Byte)
@@ -26,3 +27,7 @@ irq_handler irq_table[IRQ_NUMBER];
 
 //system ticks
 uint64_t    sys_ticks = 0;
+
+//tty
+TTY tty_table[NR_TTYS];
+TTY* current_tty;

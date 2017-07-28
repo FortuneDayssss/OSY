@@ -5,6 +5,7 @@
 #define __NR_test   0
 #define __NR_times  1
 #define __NR_getcharfromkeybuffer 2
+#define __NR_ttywrite 3
 
 #define SYSTEM_CALL_NUM 10
 
@@ -44,6 +45,7 @@ type name(atype a, btype b){ \
 uint32_t test();
 uint32_t times();
 uint32_t getcharfromkeybuffer(uint8_t* buf, uint32_t size);
+uint32_t ttywrite(uint8_t* buf, uint32_t size);
 
 
 #endif

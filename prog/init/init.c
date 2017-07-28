@@ -48,4 +48,15 @@ void init_kernel(){
     init_interrupt();
     init_tss_descriptor();
 
+    //gmem state (for debug)
+    uint16_t temp;
+    uint8_t* p = (uint8_t*)(&temp);
+    out_byte(CRTC_ADDR_REG, START_ADDR_H);
+    *p = in_byte(CRTC_DATA_REG);
+    out_byte(CRTC_ADDR_REG, START_ADDR_L);
+    p++;
+    *p = in_byte(CRTC_DATA_REG);
+    printString("gmem start: ", -1);
+    printInt16(temp);
+    upRollScreen();
 }
