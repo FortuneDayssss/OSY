@@ -3,6 +3,7 @@
 #include "global.h"
 #include "keyboard.h"
 #include "type.h"
+#include "tty.h"
 
 //keyboard map(from Orange'S)
 uint32_t keymap[128 * 3] = {
@@ -149,11 +150,13 @@ int             ctrl_right;
 int             caps_lock;
 int             num_lock;
 int             scroll_lock;
+int	            code_with_E0;
 
 //local function declaration
 void set_leds();
 uint8_t keyboard_buffer_get();
-void keyboard_read();
+uint8_t keyboard_buffer_getCode(int seek);
+void keyboard_buffer_pop(int pop_len);
 
 //keyboard.c
 void keyboard_handler(){
@@ -166,75 +169,195 @@ void keyboard_handler(){
             keyboard_buffer.head = keyboard_buffer.buffer;
         keyboard_buffer.count++;
     }
-
-    // if(scan_code != 0xFA && (scan_code & FLAG_BREAK)){
-        // uint8_t c = (uint8_t)keymap[(scan_code & 0x7f) * 3];
-        // printString("aaa", -1);
-        // printInt32(scan_code);
-        // printChar(&c);
-        // upRollScreen();
-    // }
-    //for test
-    //printInt8(scan_code);
-    //upRollScreen();
 }
 
-uint32_t sys_keyboard_read(uint8_t* buf, uint32_t size){
-    if(keyboard_buffer.count == 0)
-        return 0;
-    int res_size_counter = 0;
-    while(keyboard_buffer.count > 0 && res_size_counter < size){
-        uint8_t scan_code = keyboard_buffer_get();
-        if(scan_code == 0xe1){
-
-        }
-        else if(scan_code == 0xe0){
-
-        }
-        else{
-            int is_make_code = (scan_code & FLAG_BREAK ? 0 : 1);
-            int column = 0;
-            if(shift_left || shift_right){
-                column = 1;
-            }
-        
-            if(is_make_code){
-                buf[res_size_counter] = (uint8_t)(keymap[(scan_code & 0x7f) * 3]);
-                res_size_counter++;
-            }
-        }
-    }
-    return res_size_counter;
-}
-
-void keyboard_read(){
-    // printInt32(keyboard_buffer.count);
-    // upRollScreen();
+int keyboard_process(TTY* tty, uint32_t* key_ret, uint32_t* shift_ret, uint32_t* ctrl_ret, uint32_t* alt_ret, uint32_t* make_ret){
     if(keyboard_buffer.count <= 0)
-        return;
+        return 0;
+    uint8_t scan_code;
+    uint32_t make = 0;
+    uint32_t key = 0;
+    uint32_t* keyrow;
+    uint32_t seek = 0;
+    if(keyboard_buffer.count > 0){
+        code_with_E0 = 0;
+        scan_code = keyboard_buffer_getCode(seek);
 
-    uint8_t scan_code = keyboard_buffer_get();
-
-    if(scan_code == 0xe1){
-
-    }
-    else if(scan_code == 0xe0){
-
-    }
-    else{
-        int is_make_code = (scan_code & FLAG_BREAK ? 0 : 1);
-        int column = 0;
-        if(shift_left || shift_right){
-            column = 1;
+        //scan code size > 3
+        if(scan_code == 0xE1){ //pause break
+            if(keyboard_buffer.count >= 6 &&
+                keyboard_buffer_getCode(seek + 1) == 0x1D &&
+                keyboard_buffer_getCode(seek + 2) == 0x45 &&
+                keyboard_buffer_getCode(seek + 3) == 0xE1 &&
+                keyboard_buffer_getCode(seek + 4) == 0x9D &&
+                keyboard_buffer_getCode(seek + 5) == 0xC5){
+                key = PAUSEBREAK;
+                keyboard_buffer_pop(6);
+            }
+        }else if(scan_code == 0xE0){//screenprint
+            if(keyboard_buffer.count >= 4 &&
+                keyboard_buffer_getCode(seek + 1) == 0x2A &&
+                keyboard_buffer_getCode(seek + 2) == 0xE0 &&
+                keyboard_buffer_getCode(seek + 3) == 0x37){
+                key = PRINTSCREEN;
+                make = 1;
+                keyboard_buffer_pop(4);
+            }else if(keyboard_buffer.count >= 4 &&
+                keyboard_buffer_getCode(seek + 1) == 0xB7 &&
+                keyboard_buffer_getCode(seek + 2) == 0xE0 &&
+                keyboard_buffer_getCode(seek + 3) == 0xAA){
+                key = PRINTSCREEN;
+                make = 0;
+                keyboard_buffer_pop(4);
+            }
+            if(key == 0){
+                code_with_E0 = 1;
+            }
         }
 
-        
-        if(is_make_code){
-            // test();
-            uint8_t c = (uint8_t)(keymap[(scan_code & 0x7f) * 3]);
-            printChar(&c);
+        //scan code size <= 2
+        if((key != PAUSEBREAK) && (key != PRINTSCREEN)){
+            make = (scan_code & FLAG_BREAK ? 0 : 1);
+            uint32_t* keyrow = &keymap[(scan_code & 0x7F) * MAP_COLS];
+            uint32_t column = 0;
+
+            int caps = shift_left || shift_right;
+            if(caps_lock && (keyrow[0] >= 'a') && (keyrow[0] <= 'z')){
+                caps = !caps;
+            }
+            if (caps) {
+				column = 1;
+			}
+			if (code_with_E0) {
+				column = 2;
+            }
+            key = keyrow[column];
+
+            switch(key){
+                case SHIFT_L:
+                    shift_left = make;
+                    break;
+                case SHIFT_R:
+                    shift_right = make;
+                    break;
+                case CTRL_L:
+                    ctrl_left = make;
+                    break;
+                case CTRL_R:
+                    ctrl_right = make;
+                    break;
+                case ALT_L:
+                    alt_left = make;
+                    break;
+                case ALT_R:
+                    alt_right = make;
+                    break;
+                case CAPS_LOCK:
+                    if(make){
+                        caps_lock = !caps_lock;
+                        set_leds();
+                    }
+                    break;
+                case NUM_LOCK:
+                    if(make){
+                        num_lock = !num_lock;
+                        set_leds();
+                    }
+                    break;
+                case SCROLL_LOCK:
+                    if(make){
+                        scroll_lock = !scroll_lock;
+                        set_leds();
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            if(make){
+                int pad = 0;
+                if((key >= PAD_SLASH) && (key <= PAD_9)){
+                    pad = 1;
+                    switch(key){
+                        case PAD_SLASH:
+                            key = '/';
+                            break;
+                        case PAD_STAR:
+                            key = '*';
+                            break;
+                        case PAD_MINUS:
+                            key = '-';
+                            break;
+                        case PAD_PLUS:
+                            key = '+';
+                            break;
+                        case PAD_ENTER:
+                            key = ENTER;
+                            break;
+                        default:
+                            if(num_lock &&
+                                (key >= PAD_0) &&
+                                (key <= PAD_9)){
+                                    key = key - PAD_0 + '0';
+                            }
+                            else if(num_lock && (key == PAD_DOT)){
+                                key = '.';
+                            }
+                            else{
+                                switch(key){
+                                    case PAD_HOME:
+                                        key = HOME;
+                                        break;
+                                    case PAD_END:
+                                        key = END;
+                                        break;
+                                    case PAD_PAGEUP:
+                                        key = PAD_PAGEUP;
+                                        break;
+                                    case PAD_PAGEDOWN:
+                                        key = PAGEDOWN;
+                                        break;
+                                    case PAD_INS:
+                                        key = INSERT;
+                                        break;
+                                    case PAD_UP:
+                                        key = UP;
+                                        break;
+                                    case PAD_DOWN:
+                                        key = DOWN;
+                                        break;
+                                    case PAD_LEFT:
+                                        key = LEFT;
+                                        break;
+                                    case PAD_RIGHT:
+                                        key = RIGHT;
+                                        break;
+                                    case PAD_DOT:
+                                        key = DELETE;
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }
+                            break;
+                    }
+                }
+            }
+            if(scan_code == 0xE0){
+                keyboard_buffer_pop(2);
+            }
+            else{
+                keyboard_buffer_pop(1);
+            }
         }
     }
+    
+    *key_ret = key;
+    *shift_ret = shift_left | shift_right;
+    *ctrl_ret = ctrl_left | ctrl_right;
+    *alt_ret = alt_left | alt_right;
+    *make_ret = make;
+    return 1;
 }
 
 void init_keyboard(){
@@ -255,9 +378,7 @@ uint8_t keyboard_buffer_get(){
     uint8_t scan_code;
     // while(keyboard_buffer.count <= 0){}
 
-    __asm__(
-        "cli\n\t"
-    );
+    __asm__("cli\n\t");
 
     scan_code = *(keyboard_buffer.tail);
     keyboard_buffer.tail++;
@@ -265,10 +386,34 @@ uint8_t keyboard_buffer_get(){
         keyboard_buffer.tail = keyboard_buffer.buffer;
     keyboard_buffer.count--;
 
-    __asm__(
-        "sti\n\t"
-    );
+    __asm__("sti\n\t");
+
     return scan_code;
+}
+
+uint8_t keyboard_buffer_getCode(int seek){
+    if(seek > keyboard_buffer.count)
+        return 0;
+    uint8_t scan_code;
+        
+    __asm__("cli\n\t");
+    scan_code = keyboard_buffer.buffer[((uint32_t)(keyboard_buffer.tail - keyboard_buffer.buffer) + seek) % KEYBOARD_BUFFER_MAX_SIZE];
+    __asm__("sti\n\t");
+        
+    return scan_code;
+}
+
+void keyboard_buffer_pop(int pop_len){
+    if(pop_len > keyboard_buffer.count)
+        return;
+    __asm__("cli\n\t");
+    for(int i = 0; i < pop_len; i++){
+        keyboard_buffer.tail++;
+        if(keyboard_buffer.tail >= keyboard_buffer.buffer + KEYBOARD_BUFFER_MAX_SIZE)
+            keyboard_buffer.tail = keyboard_buffer.buffer;
+    }
+    keyboard_buffer.count -= pop_len;
+    __asm__("sti\n\t");
 }
 
 void set_leds(){

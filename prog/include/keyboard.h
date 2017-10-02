@@ -1,4 +1,5 @@
 #include "type.h"
+#include "tty.h"
 #ifndef _KEYBOARD_H__
 #define _KEYBOARD_H__
 
@@ -126,6 +127,6 @@ typedef struct{
 
 void init_keyboard();
 void keyboard_read();
-uint32_t sys_keyboard_read(uint8_t* buf, uint32_t size);
+int keyboard_process(TTY* tty, uint32_t* key_ret, uint32_t* shift_ret, uint32_t* ctrl_ret, uint32_t* alt_ret, uint32_t* make_ret);
 
 #endif
