@@ -6,9 +6,11 @@
 
 
 //local function
+void screen_out_char(int nr_tty, char ch);
 void screen_set_cursor(uint32_t pos);
 void screen_set_base_addr(uint32_t addr);
 void screen_flush(TTY_Console* pc);
+void screen_switch(int nr_tty);
 
 //tty
 uint32_t sys_tty_write(uint8_t* buf, uint32_t size){
@@ -22,10 +24,27 @@ uint32_t sys_tty_write(uint8_t* buf, uint32_t size){
     }
 }
 
+uint32_t get_gmem_base(){
+    uint32_t a;
+    uint32_t b;
+    __asm__("cli\n\t"::);
+    out_byte(CRTC_ADDR_REG, START_ADDR_H);
+    a = in_byte(CRTC_DATA_REG);
+    a = a << 8;
+    out_byte(CRTC_ADDR_REG, START_ADDR_L);
+    b = in_byte(CRTC_DATA_REG);
+    a += b;
+    __asm__("sti\n\t"::);
+    return a;
+}
+
 void switch_tty(int n){
     if(n >= NR_TTYS || n < 0)
         return;
+    printInt32(get_gmem_base());
+    // upRollScreen();
     current_tty = &tty_table[n];
+    screen_switch(n);
 }
 
 void tty_init(TTY* pt){
@@ -49,7 +68,17 @@ void tty_read(TTY* pt){
 
 void tty_write(TTY* pt){
     if(pt->keyBuffer.count > 0){
-        printChar(pt->keyBuffer.tail);
+        if(*(pt->keyBuffer.tail) == 'a'){
+            if(current_tty == &tty_table[0]){
+                switch_tty(1);
+            }
+            else{
+                current_tty = &tty_table[0];
+                switch_tty(0);
+            }
+        }
+        // printChar(pt->keyBuffer.tail);              //todo 从print.c改至console print
+        screen_out_char(current_tty ,*(pt->keyBuffer.tail));
         pt->keyBuffer.tail++;
         if(pt->keyBuffer.tail == pt->keyBuffer.buffer + TTY_BUFFER_SIZE)
             pt->keyBuffer.tail = pt->keyBuffer.buffer;
@@ -80,23 +109,28 @@ void tty_buffer_init(TTY_KeyBuffer* pb){
 
 //console
 void tty_console_init(TTY_Console* pc, int nr_console){
-    pc->graphMemoryBase = V_MEM_BASE + CONSOLE_GMEM_SIZE * nr_console;
+    pc->graphMemoryBase = CONSOLE_GMEM_SIZE * nr_console;
     pc->dispAddr = pc->graphMemoryBase;
     pc->cursorAddr = pc->graphMemoryBase;
 }
 
 //screen
+void screen_out_char(int nr_tty, char ch){
+    uint16_t out_ch = 0x0F00 | (0x00FF & ch);
+    *((uint16_t*)(current_tty->console.cursorAddr + V_MEM_BASE)) = out_ch;
+    current_tty->console.cursorAddr += 2;
+}
+
 void screen_switch(int nr_tty){
     if(nr_tty < 0 || nr_tty >= NR_CONSOLES)
         return;
-
-    current_tty = tty_table + nr_tty;
     
     screen_flush(&(current_tty->console));
 }
 
 void screen_set_base_addr(uint32_t addr){
     __asm__("cli\n\t"::);
+    addr = addr >> 1;
     out_byte(CRTC_ADDR_REG, START_ADDR_H);
     out_byte(CRTC_DATA_REG, (addr >> 8) & 0xff);
     out_byte(CRTC_ADDR_REG, START_ADDR_L);
@@ -114,6 +148,7 @@ void screen_set_cursor(uint32_t pos){
 }
 
 void screen_flush(TTY_Console* pc){
+    // printInt32(pc->graphMemoryBase);
     screen_set_base_addr(pc->graphMemoryBase);
-    screen_set_cursor(pc->cursorAddr);
+    screen_set_cursor(pc->cursorAddr);    
 }

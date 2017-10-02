@@ -20,7 +20,7 @@ void schedule_output_test(){
 
 void p1test(){
     while(1){
-        test();
+        //test();
         // printString("p1---   ", -1);
         // upRollScreen();
         // keyboard_read();
