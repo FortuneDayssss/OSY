@@ -7,6 +7,7 @@
 
 //local function
 void screen_out_char(int nr_tty, char ch);
+void screen_roll_up(int nr_tty);
 void screen_set_cursor(uint32_t pos);
 void screen_set_base_addr(uint32_t addr);
 void screen_flush(TTY_Console *pc);
@@ -37,7 +38,7 @@ void tty_init(TTY *pt){
 //local parameters for keyboard
 uint32_t code_with_E0 = 0;
 
-void tty_read(TTY *pt){
+void tty_read_loop(TTY *pt){
     uint32_t key;
     uint32_t shift;
     uint32_t ctrl;
@@ -46,10 +47,13 @@ void tty_read(TTY *pt){
     uint32_t have_input;
     do{
         have_input = keyboard_process(pt, &key, &shift, &ctrl, &alt, &make);
-        if(have_input && (key != 0) && make == 1 && key >= '1' && key <= '9' && ctrl){
+        if(have_input && (key != 0) && make == 1 && key >= '1' && key <= '9' && ctrl){//ctrl+1~9, switch tty
             switch_tty(key - '1');
         }
-        else if(have_input && key != 0 && (!(key & FLAG_EXT)) && make == 1){
+        else if(have_input && key ==ENTER && make == 1){                    //enter, roll up screen
+            screen_roll_up(pt - tty_table);
+        }
+        else if(have_input && key != 0 && (!(key & FLAG_EXT)) && make == 1){//screen output
             *(pt->keyBuffer.head) = key;
             pt->keyBuffer.head++;
             if (pt->keyBuffer.head == pt->keyBuffer.buffer + TTY_BUFFER_SIZE)
@@ -59,7 +63,7 @@ void tty_read(TTY *pt){
     }while(have_input);
 }
 
-void tty_write(TTY *pt){
+void tty_write_loop(TTY *pt){
     if (pt->keyBuffer.count > 0){
         screen_out_char(pt - tty_table, *(pt->keyBuffer.tail));
         pt->keyBuffer.tail++;
@@ -78,8 +82,8 @@ void tty_main(){
 
     //tty loop
     while (1){
-        tty_read(current_tty);
-        tty_write(current_tty);
+        tty_read_loop(current_tty);
+        tty_write_loop(current_tty);
     }
 }
 
@@ -94,14 +98,32 @@ void tty_buffer_init(TTY_KeyBuffer *pb){
 void tty_console_init(TTY_Console *pc, int nr_console){
     pc->graphMemoryBase = CONSOLE_GMEM_SIZE * nr_console;
     pc->dispAddr = pc->graphMemoryBase;
-    pc->cursorAddr = pc->graphMemoryBase;
+    pc->cursorAddr = pc->graphMemoryBase + 80*24*2;
 }
 
 //screen
 void screen_out_char(int nr_tty, char ch){
-    uint16_t out_ch = 0x0F00 | (0x00FF & ch);
-    *((uint16_t *)(current_tty->console.cursorAddr + V_MEM_BASE)) = out_ch;
-    tty_table[nr_tty].console.cursorAddr += 2;
+    if(tty_table[nr_tty].console.cursorAddr - tty_table[nr_tty].console.graphMemoryBase >= (80*25-1)*2){
+        screen_roll_up(nr_tty);
+        tty_table[nr_tty].console.cursorAddr -= tty_table[nr_tty].console.cursorAddr % 160;
+    }
+    if(ch == '\n'){
+        screen_roll_up(nr_tty);
+        tty_table[nr_tty].console.cursorAddr -= tty_table[nr_tty].console.cursorAddr % 160;
+    }
+    else{
+        uint16_t out_ch = 0x0F00 | (0x00FF & ch);
+        *((uint16_t *)(tty_table[nr_tty].console.cursorAddr + V_MEM_BASE)) = out_ch;
+        tty_table[nr_tty].console.cursorAddr += 2;
+    }
+}
+
+void screen_roll_up(int nr_tty){
+    uint16_t* screen_ptr = (uint16_t*)(tty_table[nr_tty].console.graphMemoryBase + V_MEM_BASE);
+    for(int i = 0; i < 80*24; i++){//vga text mode h=25, w=80
+        *screen_ptr = *(screen_ptr + 80);
+        screen_ptr++;
+    }
 }
 
 void screen_set_base_addr(uint32_t addr){

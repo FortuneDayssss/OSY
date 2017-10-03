@@ -20,11 +20,7 @@ void schedule_output_test(){
 
 void p1test(){
     while(1){
-        //test();
-        // printString("p1---   ", -1);
-        // upRollScreen();
-        // keyboard_read();
-        //ttywrite("asdasdasd", -1);
+        ttywrite("EEEEEEJJJJJJEEEEEEJJJJJJ\n", -1);
         sleep(100);
         // sleep(100);
     }
@@ -51,6 +47,7 @@ int main(){
     int pid = create_process(p1test, PRIVILEGE_USER, 0);
     pcb_table[pid].state = PROCESS_RUNNING;
     create_process(tty_main, PRIVILEGE_KERNEL, 0);
+    // create_process(p1test, PRIVILEGE_USER, 0);
 
     current_process = pcb_table;
 
