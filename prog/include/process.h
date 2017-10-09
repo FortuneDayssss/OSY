@@ -14,6 +14,7 @@
 #define PROCESS_DEAD            4   //zombie
 #define PROCESS_EMPTY           5   //(for test) avaliable pcb
 #define PROCESS_READY           6   //for test
+#define PROCESS_WAITING         7   //wait for signal
 
 typedef struct{
     //--------------same as asm macro----------------
