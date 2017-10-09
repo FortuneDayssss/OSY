@@ -14,12 +14,12 @@ void screen_flush(TTY_Console *pc);
 
 //tty
 uint32_t sys_tty_write(uint8_t *buf, uint32_t size){
-    for (int i = 0; (size == -1 || i < size) && buf[i] != '\0' && current_tty->keyBuffer.count < TTY_BUFFER_SIZE; i++){
-        *(current_tty->keyBuffer.head) = buf[i];
-        current_tty->keyBuffer.head++;
-        if (current_tty->keyBuffer.head == current_tty->keyBuffer.buffer + TTY_BUFFER_SIZE)
-            current_tty->keyBuffer.head = current_tty->keyBuffer.buffer;
-        current_tty->keyBuffer.count++;
+    for (int i = 0; (size == -1 || i < size) && buf[i] != '\0' && current_process->tty->keyBuffer.count < TTY_BUFFER_SIZE; i++){
+        *(current_process->tty->keyBuffer.head) = buf[i];
+        current_process->tty->keyBuffer.head++;
+        if (current_process->tty->keyBuffer.head == current_process->tty->keyBuffer.buffer + TTY_BUFFER_SIZE)
+        current_process->tty->keyBuffer.head = current_process->tty->keyBuffer.buffer;
+        current_process->tty->keyBuffer.count++;
     }
 }
 
@@ -124,6 +124,13 @@ void screen_roll_up(int nr_tty){
         *screen_ptr = *(screen_ptr + 80);
         screen_ptr++;
     }
+    screen_ptr = (uint16_t*)(tty_table[nr_tty].console.graphMemoryBase + V_MEM_BASE);
+    screen_ptr += 80*24;    
+    for(int i = 0; i < 80 ; i++){
+        *screen_ptr = 0;
+        screen_ptr++;
+    }
+    tty_table[nr_tty].console.cursorAddr = tty_table[nr_tty].console.graphMemoryBase + 80*24*2;
 }
 
 void screen_set_base_addr(uint32_t addr){

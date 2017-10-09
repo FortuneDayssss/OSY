@@ -19,18 +19,28 @@ void schedule_output_test(){
 }
 
 void p1test(){
-    while(1){
+    for(int i = 0; i < 5; i++){
         ttywrite("EEEEEEJJJJJJEEEEEEJJJJJJ\n", -1);
+    }
+    block(1);
+    while(1){
+        ttywrite("P1!\n", -1);
         sleep(100);
-        // sleep(100);
+        sleep(100);
     }
 }
 
 
 void p3test(){
+    for(int i = 0; i < 5; i++){
+        ttywrite("P3!\n", -1);
+        sleep(100);
+        sleep(100);
+    }
+    pcb_table[1].state = PROCESS_STOPPED;
     while(1){
-        printString("p3!\n", -1);
-        upRollScreen();
+        ttywrite("P3!!\n", -1);
+        sleep(100);
         sleep(100);
     }
 }
@@ -44,11 +54,10 @@ int main(){
     for(int i = 0; i < MAX_PROCESS_NUM; i++){
         init_dummy_process(&pcb_table[i]);
     }
-    int pid = create_process(p1test, PRIVILEGE_USER, 0);
-    pcb_table[pid].state = PROCESS_RUNNING;
     create_process(tty_main, PRIVILEGE_KERNEL, 0);
-    // create_process(p1test, PRIVILEGE_USER, 0);
-
+    // create_process(p1test, PRIVILEGE_KERNEL, 0);    
+    // create_process(p3test, PRIVILEGE_KERNEL, 0);    
+    
     current_process = pcb_table;
 
     switch_to_user_mode();

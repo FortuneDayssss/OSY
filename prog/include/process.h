@@ -16,11 +16,11 @@
 #define PROCESS_READY           6   //for test
 
 typedef struct{
+    //--------------same as asm macro----------------
     uint8_t         stack0[STACK_SIZE];
     uint8_t         stack3[STACK_SIZE];
-    
     uint32_t        esp;
-
+    //--------------same as asm macro----------------
     uint32_t        pid;
     char            name[32];
     uint32_t        state;

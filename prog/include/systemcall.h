@@ -5,6 +5,7 @@
 #define __NR_test   0
 #define __NR_times  1
 #define __NR_ttywrite 2
+#define __NR_block  3
 
 #define SYSTEM_CALL_NUM 10
 

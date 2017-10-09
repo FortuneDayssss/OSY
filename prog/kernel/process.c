@@ -1,6 +1,26 @@
 #include "process.h"
 #include "global.h"
 
+void block(int pid){//just can use in kernel privilege
+    __asm__("cli\n\t" ::);
+    pcb_table[pid].state = PROCESS_EMPTY;
+
+    __asm__(
+        "pushf\n\t"
+        "pushl  %%cs\n\t"
+        "pushl  $2f\n\t"
+        "pusha\n\t"
+        "call   %1\n\t"         //schedule();
+        "subl   $4, %%esp\n\t"  //switch_to_next_process做了平衡clock_handler的栈平衡, 设置32位空位模拟clock_handler
+        "jmp    %0\n\t"         //switch_to_next_process
+        "2:\n\t"
+        "sti"
+        :
+        :"m"(switch_to_next_process), "m"(schedule)
+    );
+
+}
+
 void schedule(){
     next_process = current_process;
     current_process->tick = 200;
@@ -11,12 +31,17 @@ void schedule(){
         if(pcb_table[next_process_index].state == PROCESS_READY
             || pcb_table[next_process_index].state == PROCESS_STOPPED){
             next_process = &pcb_table[next_process_index];
-            current_process->state = PROCESS_STOPPED;
+            if(current_process->state == PROCESS_RUNNING){
+                current_process->state = PROCESS_STOPPED;
+            }
             next_process->state = PROCESS_RUNNING;
             break;
         }
     }
 
+    // printString("next process:", -1);
+    // printInt32(next_process - pcb_table);
+    // upRollScreen();
 }
 
 uint32_t create_process(void (*startAddr), uint32_t privilege, uint32_t nr_tty){
