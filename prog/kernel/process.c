@@ -3,6 +3,7 @@
 
 void block(int pid){//just can use in kernel privilege
     __asm__("cli\n\t" ::);
+    
     pcb_table[pid].state = PROCESS_WAITING;
 
     __asm__(
