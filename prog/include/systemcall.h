@@ -1,11 +1,13 @@
-#include "type.h"
 #ifndef _SYSTEM_CALL_H__
 #define _SYSTEM_CALL_H__
+#include "type.h"
+#include "ipc.h"
 
-#define __NR_test   0
-#define __NR_times  1
-#define __NR_ttywrite 2
-#define __NR_block  3
+#define __NR_test       0
+#define __NR_times      1
+#define __NR_ttywrite   2
+#define __NR_ipc_send   3
+#define __NR_ipc_recv   4
 
 #define SYSTEM_CALL_NUM 10
 
@@ -45,6 +47,8 @@ type name(atype a, btype b){ \
 uint32_t test();
 uint32_t times();
 uint32_t ttywrite(uint8_t* buf, uint32_t size);
+uint32_t ipc_send(uint32_t dst_pid, Message* msg_ptr);
+uint32_t ipc_recv(uint32_t src_pid, Message* msg_ptr);
 
 
 #endif
