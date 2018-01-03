@@ -183,10 +183,11 @@ void init_idt_descriptor(unsigned char _vector,
                         interrupt_handler handler, 
                         unsigned char privilege);
 void dummy_irq(int irq);
+void set_irq_handler(int vec_no, irq_handler handler);
 void init_8259A();
 void init_interrupt();
 void init_tss_descriptor();
-void init_clock_frequency();
+void init_clock();
 void exception_handler(int vec_no, int err_code, int eip, int cs, int eflags);
 
 //switch_to_user_mode

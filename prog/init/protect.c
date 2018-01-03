@@ -92,8 +92,6 @@ void init_8259A(){
     for(int i = 0; i < IRQ_NUMBER; i++){//dummy irq
         irq_table[i] = dummy_irq;
     }
-    set_irq_handler(CLOCK_IRQ, clock_handler);
-    set_irq_handler(KEYBOARD_IRQ, keyboard_handler);
 }
 
 void init_interrupt(){
@@ -152,13 +150,6 @@ void init_tss_descriptor(){
         DA_386TSS
     );
     tss.iobase = sizeof(tss);
-}
-
-void init_clock_frequency(){
-    //init 8253 (frequency ~~= interrupt/10ms)
-    out_byte(TIMER_MODE, RATE_GENERATOR);
-    out_byte(TIMER0, (uint8_t) (TIMER_FREQ/HZ) );
-    out_byte(TIMER0, (uint8_t) ((TIMER_FREQ/HZ) >> 8));
 }
 
 void exception_handler(int vec_no, int err_code, int eip, int cs, int eflags){

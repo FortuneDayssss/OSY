@@ -186,6 +186,7 @@ hwint01:		; Interrupt routine for irq 1 (keyboard)
 	
 ALIGN	16
 hwint02:		; Interrupt routine for irq 2 (cascade!)
+	hwint_master	2
 
 ALIGN	16
 hwint03:		; Interrupt routine for irq 3 (second serial)

@@ -372,6 +372,9 @@ void init_keyboard(){
     num_lock = 1;
     scroll_lock = 0;
     set_leds();
+
+    // init keyboard irq handler
+    set_irq_handler(KEYBOARD_IRQ, keyboard_handler);
 }
 
 uint8_t keyboard_buffer_get(){
