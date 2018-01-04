@@ -23,6 +23,8 @@
 
 #define PID_ANY                 0xFFFFFFFF
 #define PID_INT                 0xFFFFFFFE
+#define PID_TTY                 0
+#define PID_HD                  1
 
 
 typedef struct PCB_struct{
@@ -51,4 +53,5 @@ void switch_to_next_process();      //kernel.asm
 uint32_t create_process(void (*startAddr), uint32_t privilege, uint32_t nr_tty);//process.c
 uint32_t sys_ipc_send(uint32_t dst_pid, Message* msg_ptr);
 uint32_t sys_ipc_recv(uint32_t src_pid, Message* msg_ptr);
+uint32_t sys_ipc_int_send(uint32_t dst_pid);
 #endif

@@ -193,6 +193,7 @@ uint32_t sys_ipc_recv(uint32_t src_pid, Message* msg_ptr){
         if(receiver_pcb->has_int_message){
             msg_ptr->src_pid = PID_INT;
             msg_ptr->type = MSG_INT;
+            receiver_pcb->has_int_message = 0;
             get_msg_ok = 1;
         }
         // have message in queue and want get message from any process
@@ -225,5 +226,20 @@ uint32_t sys_ipc_recv(uint32_t src_pid, Message* msg_ptr){
         receiver_pcb->pid_recv_from = src_pid;
         receiver_pcb->message_ptr = msg_ptr;
         ipc_block(receiver_pcb - pcb_table, IPC_FLAG_RECEIVEING);
+    }
+}
+
+uint32_t sys_ipc_int_send(uint32_t dst_pid){
+    PCB* receiver_pcb = pcb_table + dst_pid;
+    if(
+        (receiver_pcb->ipc_flag & IPC_FLAG_RECEIVEING) && 
+        (receiver_pcb->pid_recv_from == PID_ANY || receiver_pcb->pid_recv_from == PID_INT)){
+        receiver_pcb->has_int_message = 0;
+        receiver_pcb->message_ptr->src_pid = PID_INT;
+        receiver_pcb->message_ptr->type = MSG_INT;
+        ipc_unblock(dst_pid, IPC_FLAG_RECEIVEING);
+    }
+    else{
+        receiver_pcb->has_int_message = 1;
     }
 }

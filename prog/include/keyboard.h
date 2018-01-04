@@ -125,7 +125,6 @@ typedef struct{
     uint8_t     buffer[KEYBOARD_BUFFER_MAX_SIZE];
 }KeyboardBuffer;
 
-void init_keyboard();
 void keyboard_read();
 int keyboard_process(TTY* tty, uint32_t* key_ret, uint32_t* shift_ret, uint32_t* ctrl_ret, uint32_t* alt_ret, uint32_t* make_ret);
 

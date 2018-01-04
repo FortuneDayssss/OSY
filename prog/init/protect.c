@@ -85,8 +85,8 @@ void init_8259A(){
     out_byte(INT_M_CTLMASK, 0x1);               //icw4 => master8259A
     out_byte(INT_S_CTLMASK, 0x1);               //icw4 => slave8259A
 
-    out_byte(INT_M_CTLMASK, 0xFC);              //ocw1 => master8259A  
-    out_byte(INT_S_CTLMASK, 0xFF);              //ocw1 => slave8259A
+    out_byte(INT_M_CTLMASK, 0xF8);              //ocw1 => master8259A  
+    out_byte(INT_S_CTLMASK, 0xBF);              //ocw1 => slave8259A
 
     //init irq
     for(int i = 0; i < IRQ_NUMBER; i++){//dummy irq

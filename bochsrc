@@ -13,6 +13,7 @@ vgaromimage: file=bochsfiles/VGABIOS-lgpl-latest
 
 
 floppya: 1_44=a.img, status=inserted
+ata0-master: type=disk, path="c.img", mode=flat
 
 boot: floppy
 

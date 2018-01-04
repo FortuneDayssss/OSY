@@ -16,6 +16,7 @@ OSKERNEL	= kernel.bin
 OBJS		= kernel/kernel.o \
 				kernel/clock.o \
 				kernel/global.o \
+				kernel/hd.o \
 				kernel/process.o \
 				kernel/keyboard.o \
 				kernel/systemcall.o \
@@ -63,6 +64,9 @@ kernel/clock.o: kernel/clock.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 kernel/global.o: kernel/global.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+kernel/hd.o: kernel/hd.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 kernel/process.o: kernel/process.c

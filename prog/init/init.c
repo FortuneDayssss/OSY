@@ -47,6 +47,7 @@ void init_kernel(){
     init_interrupt();
     init_clock();
     init_keyboard();
+    init_hd();
     init_tss_descriptor();
 
     //gmem state (for debug)

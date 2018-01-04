@@ -7,6 +7,7 @@
 #include "systemcall.h"
 #include "tty.h"
 #include "ipc.h"
+#include "hd.h"
 
 void sleep(int time){
     for(int i = 0; i < time; i++)
@@ -26,11 +27,15 @@ void p1test(){
     Message msg;
     msg.type = 555;
     msg.msg1.data1 = 10;
+    for(int i = 0; i < 10; i++){
+        sleep(1000);
+        ipc_send(PID_HD, &msg);
+    }
+
     while(1){
         // ttywrite("P1!\n", -1);
         sleep(100);
         sleep(100);
-        ipc_send(2, &msg);
     }
 }
 
@@ -61,7 +66,8 @@ int main(){
         init_dummy_process(&pcb_table[i]);
     }
     create_process(tty_main, PRIVILEGE_KERNEL, 0);
-    // create_process(p1test, PRIVILEGE_USER, 0);    
+    create_process(hd_main, PRIVILEGE_KERNEL, 0);
+    create_process(p1test, PRIVILEGE_USER, 0);    
     // create_process(p3test, PRIVILEGE_USER, 0);    
     
     current_process = pcb_table;

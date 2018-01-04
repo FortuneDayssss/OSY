@@ -188,6 +188,8 @@ void init_8259A();
 void init_interrupt();
 void init_tss_descriptor();
 void init_clock();
+void init_keyboard();
+void init_hd();
 void exception_handler(int vec_no, int err_code, int eip, int cs, int eflags);
 
 //switch_to_user_mode

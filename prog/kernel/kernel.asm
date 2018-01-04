@@ -210,10 +210,33 @@ hwint07:		; Interrupt routine for irq 7 (printer)
 
 ; ---------------------------------
 %macro	hwint_slave	1
-	push	%1
-	call	dummy_irq
-	add	esp, 4
-	hlt
+	pushad
+	in		al,		INT_S_CTLMASK
+	or		al,		(1 << (%1 - 8))
+	out		INT_S_CTLMASK,	al
+	mov		al,		EOI
+	out		INT_S_CTL,	al
+	out		INT_M_CTL,	al
+	mov		ax,		ss
+	mov		ds,		ax
+	mov		es,		ax
+	mov		fs,		ax
+	sti
+
+	call	[irq_table + %1 * 4]					;handler
+
+	cli
+	in		al,		INT_S_CTLMASK
+	and		al,		(~(1 << (%1 - 8)))&(011111111b)
+	out		INT_S_CTLMASK,	al
+	mov		ax,		SELECTOR_MEMD_3
+	mov		ds,		ax
+	mov		es,		ax
+	mov		fs,		ax
+	mov		ax,		SELECTOR_VIDEO
+	mov		gs,		ax
+	popad
+	iretd
 %endmacro
 ; ---------------------------------
 
