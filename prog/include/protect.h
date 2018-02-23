@@ -175,6 +175,11 @@ typedef struct{
 //protect.c
 void out_byte(uint16_t port, uint8_t value);
 uint8_t in_byte(uint16_t port);
+void port_read_8(uint8_t port, void* buf, int size);
+void port_write_8(uint8_t port, void* buf, int size);
+void port_read_16(uint16_t port, void* buf, int size);
+void port_write_16(uint16_t port, void* buf, int size);
+
 void* seg2phyaddr(uint16_t selector);
 void* vir2phyaddr(void* selector_base, void* offset);
 void init_descriptor(Descriptor* descriptor, uint32_t base, uint32_t limit, uint16_t attribute);

@@ -34,6 +34,8 @@
 #define ATA_READ                0x20
 #define ATA_WRITE               0x30
 
+#define SECTOR_SIZE				512
+
 typedef struct{
     uint8_t features;
 	uint8_t count;

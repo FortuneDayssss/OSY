@@ -27,10 +27,10 @@ void p1test(){
     Message msg;
     msg.type = 555;
     msg.msg1.data1 = 10;
-    for(int i = 0; i < 10; i++){
-        sleep(1000);
+    // for(int i = 0; i < 10; i++){
+        // sleep(1000);
         ipc_send(PID_HD, &msg);
-    }
+    // }
 
     while(1){
         // ttywrite("P1!\n", -1);
@@ -60,6 +60,8 @@ int init_dummy_process(PCB* pcb){
     pcb->state = PROCESS_EMPTY;
 }
 
+extern void hd_read_write(uint32_t drive, uint32_t sector, uint32_t* buf, uint32_t len, uint32_t is_read);
+
 int main(){
     printString("main\n", -1);
     for(int i = 0; i < MAX_PROCESS_NUM; i++){
@@ -71,7 +73,7 @@ int main(){
     // create_process(p3test, PRIVILEGE_USER, 0);    
     
     current_process = pcb_table;
-
+    
     switch_to_user_mode();
 
     while(1){}

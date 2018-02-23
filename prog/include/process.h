@@ -23,6 +23,7 @@
 
 #define PID_ANY                 0xFFFFFFFF
 #define PID_INT                 0xFFFFFFFE
+#define PID_INVALID             0xFFFFFFFD
 #define PID_TTY                 0
 #define PID_HD                  1
 

@@ -13,7 +13,8 @@ LDFLAGS		= -s -Ttext $(ENTRYPOINT) -m elf_i386
 
 OSBOOT		= boot/bootsec.bin boot/setup.bin
 OSKERNEL	= kernel.bin
-OBJS		= kernel/kernel.o \
+OBJS		= fs/fs_main.o \
+				kernel/kernel.o \
 				kernel/clock.o \
 				kernel/global.o \
 				kernel/hd.o \
@@ -56,6 +57,9 @@ boot/setup.bin: boot/setup.asm boot/include/macro.inc
 
 $(OSKERNEL): $(OBJS)
 	$(LD) $(LDFLAGS) -o $(OSKERNEL) $(OBJS)
+
+fs/fs_main.o: fs/fs_main.c
+	$(CC) $(CFLAGS) -o $@ $<
 
 kernel/kernel.o: kernel/kernel.asm
 	$(ASM) $(ASMKFLAGS) -o $@ $<

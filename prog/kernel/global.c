@@ -1,5 +1,6 @@
 #include "global.h"
 #include "protect.h"
+#include "process.h"
 #include "type.h"
 #include "tty.h"
 
@@ -31,3 +32,13 @@ uint64_t    sys_ticks = 0;
 //tty
 TTY tty_table[NR_TTYS];
 TTY* current_tty;
+
+//device - driver map
+uint32_t dd_map[] = {
+    PID_INVALID,    //0: unused
+    PID_INVALID,    //1: reserved for floppy driver
+    PID_INVALID,    //2: reserved for cdrom driver
+    PID_HD,         //3: hard disk driver
+    PID_TTY,        //4: tty
+    PID_INVALID     //5: reserved for scsi disk driver
+};

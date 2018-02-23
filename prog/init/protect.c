@@ -32,6 +32,48 @@ uint8_t in_byte(uint16_t port){
     return data;
 }
 
+void port_read_8(uint8_t port, void* buf, int size){
+    __asm__ __volatile__(
+        "cld\n\t"
+        "rep\n\t"
+        "insb"
+        :
+        :"d"(port), "D"(buf), "c"(size)
+    );
+}
+
+void port_write_8(uint8_t port, void* buf, int size){
+    __asm__ __volatile__(
+        "cld\n\t"
+        "rep\n\t"
+        "outsb"
+        :
+        :"d"(port), "D"(buf), "c"(size)
+    );
+}
+
+void port_read_16(uint16_t port, void* buf, int size){
+    __asm__ __volatile__(
+        "shrl   $1,     %%ecx\n\t"
+        "cld\n\t"
+        "rep\n\t"
+        "insw"
+        :
+        :"d"(port), "D"(buf), "c"(size)
+    );
+}
+
+void port_write_16(uint16_t port, void* buf, int size){
+    __asm__ __volatile__(
+        "shrl   $1,     %%ecx\n\t"
+        "cld\n\t"
+        "rep\n\t"
+        "outsw"
+        :
+        :"d"(port), "S"(buf), "c"(size)
+    );
+}
+
 void* seg2phyaddr(uint16_t selector){
     Descriptor* descriptor = &gdt[selector >> 3];
     return (void*)((descriptor -> base_high << 24) 
