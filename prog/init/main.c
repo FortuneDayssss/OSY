@@ -8,6 +8,8 @@
 #include "tty.h"
 #include "ipc.h"
 #include "hd.h"
+#include "fs.h"
+#include "message.h"
 
 void sleep(int time){
     for(int i = 0; i < time; i++)
@@ -21,19 +23,22 @@ void schedule_output_test(){
 }
 
 void p1test(){
-    for(int i = 0; i < 5; i++){
-        ttywrite("EEEEEEJJJJJJEEEEEEJJJJJJ\n", -1);
+    for(int i = 0; i < 3; i++){
+        ttywrite("p1test process\n", -1);
     }
+    uint32_t buf = 0xBBBBBBBB;
     Message msg;
-    msg.type = 555;
-    msg.msg1.data1 = 10;
-    // for(int i = 0; i < 10; i++){
-        // sleep(1000);
-        ipc_send(PID_HD, &msg);
-    // }
+    msg.type = MSG_HD_READ;
+    msg.mdata_hd_read.sector = 0;
+    msg.mdata_hd_read.buf_addr = (uint32_t)(&buf);
+    msg.mdata_hd_read.len = 4;
+    ipc_send(PID_HD, &msg);
+    ipc_recv(PID_HD, &msg);
+    printString("response:  ", -1);printInt32(msg.mdata_response.status);printString("\n", -1);
+    printString("buf data:  ", -1);printInt32(buf);printString("\n", -1);
+   
 
     while(1){
-        // ttywrite("P1!\n", -1);
         sleep(100);
         sleep(100);
     }
@@ -69,7 +74,8 @@ int main(){
     }
     create_process(tty_main, PRIVILEGE_KERNEL, 0);
     create_process(hd_main, PRIVILEGE_KERNEL, 0);
-    create_process(p1test, PRIVILEGE_USER, 0);    
+    create_process(fs_main, PRIVILEGE_KERNEL, 0);
+    create_process(p1test, PRIVILEGE_USER, 0);
     // create_process(p3test, PRIVILEGE_USER, 0);    
     
     current_process = pcb_table;

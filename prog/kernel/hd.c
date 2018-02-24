@@ -4,6 +4,7 @@
 #include "print.h"
 #include "type.h"
 #include "string.h"
+#include "message.h"
 
 uint8_t hd_status;
 
@@ -67,60 +68,94 @@ void hd_identify(int drive){
     printString("\n", -1);
 }
 
+void hd_read(Message* msg){
+    // get data from message
+    MData_HD_Read* msg_data = &msg->mdata_hd_read;
+    uint32_t sector = msg_data->sector;
+    uint8_t* buf_ptr = (uint8_t*)msg_data->buf_addr;
+    uint32_t remain_len = msg_data->len;
+    uint32_t drive = 0;
 
-void hd_read_write(uint32_t drive, uint32_t sector, uint32_t* buf, uint32_t len, uint32_t is_read){
-    //set command registers
+    // set command registers
     HD_CMD cmd;
     cmd.features = 0;
-    cmd.count = len / SECTOR_SIZE + 1;
+    cmd.count = remain_len / SECTOR_SIZE + 1;
     cmd.lba_low = sector & 0xFF;
     cmd.lba_mid = (sector >> 8) & 0xFF;
     cmd.lba_high = (sector >> 16) & 0xFF;
     cmd.device = device_reg_generate(1, drive, (sector >> 24) & 0xF);
-    cmd.command = is_read ? ATA_READ : ATA_WRITE;
+    cmd.command = ATA_READ;
     hd_cmd_out(&cmd);
-    
 
-    //copy data
+    // copy data from sector to buffer
     uint8_t hdbuf[SECTOR_SIZE * 2];
-    uint32_t copy_offset = 0;
-    int remain = len;
     do{
-        uint32_t copy_len = remain < SECTOR_SIZE ? remain : SECTOR_SIZE;
-        if(is_read){
-            printString("read...wait data...\n", -1);
-            sys_ipc_recv(PID_INT, 0);
-            printString("read...data ok!\n", -1);
-            port_read_16(REG_DATA, hdbuf, SECTOR_SIZE);
-            memcpy((uint8_t*)buf + copy_offset, hdbuf, copy_len);
-        }
-        else{
-            memcpy(hdbuf, (uint8_t*)buf + copy_offset, copy_len);
-            printString("before write...\n", -1);
-            port_write_16(REG_DATA, hdbuf, SECTOR_SIZE);
-            sys_ipc_recv(PID_INT, 0);
-            printString("write finish...\n", -1);
-        }
-        copy_offset += SECTOR_SIZE;
-        remain -= SECTOR_SIZE;
-        printString("remain: ",-1);printInt32(remain);printString("\n",-1);
-    }while(remain > 0);
-    printString("read / write finish! \n", -1);
+        uint32_t copy_len = remain_len < SECTOR_SIZE ? remain_len : SECTOR_SIZE;
+        printString("read...wait data...\n", -1);
+        sys_ipc_recv(PID_INT, 0);
+        printString("read...data ok!\n", -1);
+        port_read_16(REG_DATA, hdbuf, SECTOR_SIZE);
+        
+        memcpy(buf_ptr, hdbuf, copy_len);
+
+        buf_ptr += copy_len;
+        remain_len -= copy_len;
+        printString("remain: ",-1);printInt32(remain_len);printString("\n",-1);
+    }while(remain_len > 0);
+    printString("read finish! \n", -1);
+    msg->mdata_response.status = RESPONSE_SUCCESS;
+    sys_ipc_send(msg->src_pid, msg);
+}
+
+void hd_write(Message* msg){
+    // get data from message
+    MData_HD_Read* msg_data = &msg->mdata_hd_read;
+    uint32_t sector = msg_data->sector;
+    uint8_t* buf_ptr = (uint8_t*)msg_data->buf_addr;
+    uint32_t remain_len = msg_data->len;
+    uint32_t drive = 0;
+
+    // set command registers
+    HD_CMD cmd;
+    cmd.features = 0;
+    cmd.count = remain_len / SECTOR_SIZE + 1;
+    cmd.lba_low = sector & 0xFF;
+    cmd.lba_mid = (sector >> 8) & 0xFF;
+    cmd.lba_high = (sector >> 16) & 0xFF;
+    cmd.device = device_reg_generate(1, drive, (sector >> 24) & 0xF);
+    cmd.command = ATA_WRITE;
+    hd_cmd_out(&cmd);
+
+    // copy data from sector to buffer
+    uint8_t hdbuf[SECTOR_SIZE * 2];
+    do{
+        uint32_t copy_len = remain_len < SECTOR_SIZE ? remain_len : SECTOR_SIZE;
+        memcpy(hdbuf, buf_ptr, copy_len);
+        port_write_16(REG_DATA, hdbuf, SECTOR_SIZE);
+        sys_ipc_recv(PID_INT, 0);
+
+        buf_ptr += copy_len;
+        remain_len -= copy_len;
+        printString("remain: ",-1);printInt32(remain_len);printString("\n",-1);
+    }while(remain_len > 0);
+    printString("write finish! \n", -1);
+    msg->mdata_response.status = RESPONSE_SUCCESS;
+    sys_ipc_send(msg->src_pid, msg);
 }
 
 void hd_main(){
     Message msg;
     while(1){
         sys_ipc_recv(PID_ANY, &msg);
-        printString("msg from user!\npid", -1);
-        printInt32(msg.src_pid);
-        printString("\n", -1);
-        // hd_identify(0);
-
-        //test code for hard disk read / write ----------------------todo----------------
-        uint32_t temp = 0xBBEECCAA;
-        hd_read_write(0, 0, &temp, 4, 0);
-        printString("\nhd test: ", -1);
-        printInt32(temp);printString("\n", -1);
+        switch(msg.type){
+            case MSG_HD_READ:
+                hd_read(&msg);
+                break;
+            case MSG_HD_WRITE:
+                hd_write(&msg);
+                break;
+            default:
+                break;
+        }
     }
 }

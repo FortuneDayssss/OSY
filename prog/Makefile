@@ -1,7 +1,7 @@
 ENTRYPOINT	= 0x00010000
 ENTRYOFFSET	= 0x00000000
 SETUPSECNUM	= 3
-SYSSECNUM	= 60
+SYSSECNUM	= 70
 
 ASM		= nasm
 CC		= gcc
@@ -13,8 +13,7 @@ LDFLAGS		= -s -Ttext $(ENTRYPOINT) -m elf_i386
 
 OSBOOT		= boot/bootsec.bin boot/setup.bin
 OSKERNEL	= kernel.bin
-OBJS		= fs/fs_main.o \
-				kernel/kernel.o \
+OBJS		= kernel/kernel.o \
 				kernel/clock.o \
 				kernel/global.o \
 				kernel/hd.o \
@@ -26,7 +25,8 @@ OBJS		= fs/fs_main.o \
 				init/init.o \
 				init/protect.o \
 				lib/string.o \
-				lib/print.o 
+				lib/print.o \
+				fs/fs_main.o
 
 .PHONY: everything final image clean realclean disasm all buildimg
 
@@ -57,9 +57,6 @@ boot/setup.bin: boot/setup.asm boot/include/macro.inc
 
 $(OSKERNEL): $(OBJS)
 	$(LD) $(LDFLAGS) -o $(OSKERNEL) $(OBJS)
-
-fs/fs_main.o: fs/fs_main.c
-	$(CC) $(CFLAGS) -o $@ $<
 
 kernel/kernel.o: kernel/kernel.asm
 	$(ASM) $(ASMKFLAGS) -o $@ $<
@@ -98,4 +95,7 @@ lib/string.o: lib/string.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 lib/print.o: lib/print.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+fs/fs_main.o: fs/fs_main.c
 	$(CC) $(CFLAGS) -o $@ $<

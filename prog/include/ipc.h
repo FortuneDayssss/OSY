@@ -1,18 +1,25 @@
 #ifndef _IPC_H__
 #define _IPC_H__
 #include "type.h"
+#include "message.h"
 
-#define MSG_INT         0xFFFFFFFE
+enum msgtype{
+    MSG_INT = 0xF1,
 
-typedef struct{
-    uint32_t data1;
-}Message1;
+    MSG_RESPONSE,
+
+    // hard disk drive
+    MSG_HD_READ,
+    MSG_HD_WRITE
+};
 
 typedef struct{
     uint32_t src_pid;
     uint32_t type;
     union{
-        Message1 msg1;
+        MData_Response      mdata_response;
+        MData_HD_Read       mdata_hd_read;
+        MData_HD_Write      mdata_hd_write;
     };
 
 }Message;

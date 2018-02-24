@@ -40,4 +40,14 @@ typedef struct{
     uint32_t    nr_inode;
 }INode;
 
+
+typedef struct {
+    uint32_t    fd_mode;
+    uint32_t    fd_pos;
+    INode*      fd_inode;
+}File_Desc;
+
+
+void fs_main();
+
 #endif

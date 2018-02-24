@@ -36,6 +36,7 @@
 
 #define SECTOR_SIZE				512
 
+
 typedef struct{
     uint8_t features;
 	uint8_t count;
