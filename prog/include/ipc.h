@@ -9,6 +9,7 @@ enum msgtype{
     MSG_RESPONSE,
 
     // hard disk drive
+    MSG_HD_DEV_OPEN,
     MSG_HD_READ,
     MSG_HD_WRITE
 };

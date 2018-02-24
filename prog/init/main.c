@@ -23,9 +23,9 @@ void schedule_output_test(){
 }
 
 void p1test(){
-    for(int i = 0; i < 3; i++){
-        ttywrite("p1test process\n", -1);
-    }
+    // for(int i = 0; i < 3; i++){
+    //     ttywrite("p1test process\n", -1);
+    // }
     uint32_t buf = 0xBBBBBBBB;
     Message msg;
     msg.type = MSG_HD_READ;
@@ -75,7 +75,7 @@ int main(){
     create_process(tty_main, PRIVILEGE_KERNEL, 0);
     create_process(hd_main, PRIVILEGE_KERNEL, 0);
     create_process(fs_main, PRIVILEGE_KERNEL, 0);
-    create_process(p1test, PRIVILEGE_USER, 0);
+    // create_process(p1test, PRIVILEGE_USER, 0);
     // create_process(p3test, PRIVILEGE_USER, 0);    
     
     current_process = pcb_table;

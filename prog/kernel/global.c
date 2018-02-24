@@ -33,6 +33,12 @@ uint64_t    sys_ticks = 0;
 TTY tty_table[NR_TTYS];
 TTY* current_tty;
 
+// fs
+File_Descriptor     fd_table[NR_FILE_DESCRIPTOR];
+INode               inode_table[NR_INODE];
+Super_Block         super_block_table[NR_SUPER_BLOCK];
+INode*              root_inode;
+
 //device - driver map
 uint32_t dd_map[] = {
     PID_INVALID,    //0: unused

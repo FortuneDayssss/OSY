@@ -5,6 +5,7 @@
 #include "process.h"
 #include "keyboard.h"
 #include "tty.h"
+#include "fs.h"
 
 //GDT
 extern uint8_t      gdt_ptr[6];//limit(2Byte)  Base(4Byte)
@@ -22,21 +23,27 @@ extern PCB          pcb_table[MAX_PROCESS_NUM];
 extern PCB*         current_process;
 extern PCB*         next_process;
 
-//screen
+// screen
 extern int          dispPos;
 
-//irq
+// irq
 extern irq_handler  irq_table[IRQ_NUMBER];
 
-//system ticks
+// system ticks
 extern uint64_t     sys_ticks;
 
-//tty
+// tty
 extern TTY          tty_table[NR_TTYS];
 extern TTY*         current_tty;
 
-//device - driver map
-//same as index of dd_map (in global.c)
+// fs
+extern File_Descriptor      fd_table[NR_FILE_DESCRIPTOR];
+extern INode                inode_table[NR_INODE];
+extern Super_Block          super_block_table[NR_SUPER_BLOCK];
+extern INode*               root_inode;
+
+// device - driver map
+// same as index of dd_map (in global.c)
 #define NO_DEV      0
 #define DEV_FLOPY   1
 #define DEV_CDROM   2

@@ -19,7 +19,7 @@ void init_hd(){
 }
 
 void hd_handler(){
-    printString("HD_HANDLER!\n", -1);
+    // printString("HD_HANDLER!\n", -1);
     hd_status = in_byte(REG_STATUS);
     sys_ipc_int_send(PID_HD);
     printString("HD_HANDLER DONE!\n", -1);
@@ -76,6 +76,8 @@ void hd_read(Message* msg){
     uint32_t remain_len = msg_data->len;
     uint32_t drive = 0;
 
+    printString("read sector no.", -1);printInt32(sector);printString("\n", -1);
+
     // set command registers
     HD_CMD cmd;
     cmd.features = 0;
@@ -91,18 +93,16 @@ void hd_read(Message* msg){
     uint8_t hdbuf[SECTOR_SIZE * 2];
     do{
         uint32_t copy_len = remain_len < SECTOR_SIZE ? remain_len : SECTOR_SIZE;
-        printString("read...wait data...\n", -1);
         sys_ipc_recv(PID_INT, 0);
-        printString("read...data ok!\n", -1);
         port_read_16(REG_DATA, hdbuf, SECTOR_SIZE);
         
         memcpy(buf_ptr, hdbuf, copy_len);
 
         buf_ptr += copy_len;
         remain_len -= copy_len;
-        printString("remain: ",-1);printInt32(remain_len);printString("\n",-1);
+        // printString("remain: ",-1);printInt32(remain_len);printString("\n",-1);
     }while(remain_len > 0);
-    printString("read finish! \n", -1);
+    // printString("read finish! \n", -1);
     msg->mdata_response.status = RESPONSE_SUCCESS;
     sys_ipc_send(msg->src_pid, msg);
 }
@@ -136,22 +136,34 @@ void hd_write(Message* msg){
 
         buf_ptr += copy_len;
         remain_len -= copy_len;
-        printString("remain: ",-1);printInt32(remain_len);printString("\n",-1);
+        // printString("remain: ",-1);printInt32(remain_len);printString("\n",-1);
     }while(remain_len > 0);
-    printString("write finish! \n", -1);
+    // printString("write finish! \n", -1);
     msg->mdata_response.status = RESPONSE_SUCCESS;
     sys_ipc_send(msg->src_pid, msg);
+}
+
+void hd_dev_open(Message* msg){
+
 }
 
 void hd_main(){
     Message msg;
     while(1){
+        // printString("hd process recving...\n", -1);
         sys_ipc_recv(PID_ANY, &msg);
+        if(msg.src_pid == 1)
+            continue;
         switch(msg.type){
+            case MSG_HD_DEV_OPEN:
+                hd_dev_open(&msg);
+                break;
             case MSG_HD_READ:
+                // printString("hd get read msg from ", -1);printInt32(msg.src_pid);printString("\n", -1);
                 hd_read(&msg);
                 break;
             case MSG_HD_WRITE:
+                // printString("hd get write msg from ", -1);printInt32(msg.src_pid);printString("\n", -1);
                 hd_write(&msg);
                 break;
             default:

@@ -199,6 +199,7 @@ uint32_t sys_ipc_recv(uint32_t src_pid, Message* msg_ptr){
         // have message in queue and want get message from any process
         else if(src_pid == PID_ANY && receiver_pcb->message_queue){
             sender_pcb = receiver_pcb->message_queue;
+            receiver_pcb->message_queue = sender_pcb->next_sender;
             memcpy(msg_ptr, sender_pcb->message_ptr, sizeof(Message));
             ipc_unblock(sender_pcb - pcb_table, IPC_FLAG_SENDING);
             get_msg_ok = 1;
