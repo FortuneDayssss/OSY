@@ -12,21 +12,27 @@
 void init_fs();
 void mkfs();
 void load_super_block();
-INode* load_inode(int nr_inode);
+INode* get_inode(uint32_t dev,int nr_inode);
 
 void fs_main(){
     init_fs();
-    
+    printString("init fs ok! fs service is waiting for message...\n", -1);
     Message msg;
     while(1){
         sys_ipc_recv(PID_ANY, &msg);
         switch(msg.type){
-            // case MSG_HD_READ:
-            //     hd_read(&msg);
-            //     break;
-            // case MSG_HD_WRITE:
-            //     hd_write(&msg);
-            //     break;
+            case MSG_FS_OPEN:
+                break;
+            case MSG_FS_CLOSE:
+                break;
+            case MSG_FS_READ:
+                break;
+            case MSG_FS_WRITE:
+                break;
+            case MSG_FS_UNLINK:
+                break;
+            case MSG_FS_RESUME_PROC:
+                break;
             default:
                 break;
         }
@@ -51,8 +57,9 @@ void init_fs(){
     load_super_block();
     printString("load super block ok!\n", -1);
     
-    root_inode = load_inode(ROOT_INODE);
+    root_inode = get_inode(MAKE_DEV(DEV_HD, 1) ,ROOT_INODE);
     printString("load root inode ok!\n", -1);
+    printString("root inode access mode: ", -1);printInt32(root_inode->access_mode);printString("\n", -1);
 }
 
 void read_sector(uint32_t sector, void* buf, uint32_t len){
@@ -157,7 +164,7 @@ void mkfs(){
     for(int i = 0; i < NR_CONSOLES; i++){
         (inode_ptr[i + 1]).access_mode = ACCESS_MODE_CHAR_SPECIAL;
         (inode_ptr[i + 1]).file_size = 0;
-        (inode_ptr[i + 1]).nr_start_sector = DEV_TTY;//todo: !!!!generate sec no by dev major number and id
+        (inode_ptr[i + 1]).nr_start_sector = MAKE_DEV(DEV_TTY, i);
         (inode_ptr[i + 1]).nr_sectors = 0;
     }
     write_sector(2 + sb.nr_imap_sectors + sb.nr_smap_sectors, fs_buf, SECTOR_SIZE);
@@ -214,9 +221,52 @@ void load_super_block(){
         if(super_block_table[i].dev_no == NO_DEV)
             sb_ptr = &(super_block_table[i]);
     *(sb_ptr) = *((Super_Block*)fs_buf);
-    sb_ptr->dev_no = 4;// todo: !!!!!!implement dev number rule
+    sb_ptr->dev_no = MAKE_DEV(DEV_HD, 1);
 }
 
-INode* load_inode(int nr_inode){
+Super_Block* get_super_block(uint32_t dev){
+    for(int i = 0; i < NR_SUPER_BLOCK; i++)
+        if(super_block_table[i].dev_no == dev)
+            return &(super_block_table[i]);
+    return 0;
+}
 
+INode* get_inode(uint32_t dev, int nr_inode){
+    INode* inode_ptr = inode_table;
+    INode* inode_ptr_for_load = 0;
+
+    // search inode from inode table in memory
+    while(inode_ptr < &(inode_table[NR_INODE])){
+        if((inode_ptr->process_counter) && (inode_ptr->dev_no == dev) && (inode_ptr->nr_inode == nr_inode)){
+            inode_ptr->process_counter++;
+            return inode_ptr;
+        }
+        else{
+            inode_ptr_for_load = inode_ptr;
+            break;
+        }
+    }
+    if(!inode_ptr_for_load){
+        return 0; // inode table is full, error (todo: report error)
+    }
+
+    // not in memory, load inode from hard disk
+    Super_Block* sbp = get_super_block(dev);
+    uint32_t nr_block = 1 + 1 + sbp->nr_imap_sectors + sbp->nr_smap_sectors + 
+        ((nr_inode - 1) / (SECTOR_SIZE / INODE_SIZE));
+    read_sector(nr_block, fs_buf, SECTOR_SIZE);
+
+    // copy from buffer (hard disk)
+    inode_ptr = ((INode*)fs_buf) + ((nr_inode - 1) % (SECTOR_SIZE / INODE_SIZE));
+    inode_ptr_for_load->access_mode = inode_ptr->access_mode;
+    inode_ptr_for_load->file_size = inode_ptr->file_size;
+    inode_ptr_for_load->nr_start_sector = inode_ptr->nr_start_sector;
+    inode_ptr_for_load->nr_sectors = inode_ptr->nr_sectors;
+
+    // generate data and save in memory
+    inode_ptr_for_load->dev_no = dev;
+    inode_ptr_for_load->nr_inode = nr_inode;
+    inode_ptr_for_load->process_counter = 1;
+
+    return inode_ptr_for_load;
 }

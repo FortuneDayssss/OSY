@@ -50,6 +50,14 @@ extern INode*               root_inode;
 #define DEV_HD      3
 #define DEV_TTY     4
 #define DEV_SCSI    5
+
+#define MAKE_DEV(a,b)  ((a << 8) | b)
+#define GET_DEV_MAJOR(a)    ((x >> 8) & 0xFF)
+#define GET_DEV_MINOR(a)    (x & 0xFF)
+
+#define INODE_INVALID   0
+#define INODE_ROOT      1
+
 extern uint32_t dd_map[];
 
 #endif

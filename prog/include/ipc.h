@@ -11,7 +11,13 @@ enum msgtype{
     // hard disk drive
     MSG_HD_DEV_OPEN,
     MSG_HD_READ,
-    MSG_HD_WRITE
+    MSG_HD_WRITE,
+    MSG_FS_OPEN,
+    MSG_FS_CLOSE,
+    MSG_FS_READ,
+    MSG_FS_WRITE,
+    MSG_FS_UNLINK,
+    MSG_FS_RESUME_PROC
 };
 
 typedef struct{

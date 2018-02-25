@@ -19,4 +19,8 @@ typedef struct{
     uint32_t len;
 }MData_HD_Write;
 
+typedef struct{
+    uint32_t dummy;
+}MData_FS_Read;
+
 #endif
