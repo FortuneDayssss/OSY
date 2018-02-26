@@ -8,6 +8,7 @@
 #include "global.h"
 #include "hd.h"
 #include "tty.h"
+#include "stdio.h"
 
 void init_fs();
 void mkfs();
@@ -16,12 +17,31 @@ INode* get_inode(uint32_t dev,int nr_inode);
 
 void fs_main(){
     init_fs();
+
+    //--------------test------------------
+    Message test_msg;
+    char test_path_name[20] = "/test_file_2";
+    test_msg.src_pid = 1;
+    test_msg.type = MSG_FS_OPEN;
+    test_msg.mdata_fs_open.path_name = (uint32_t)test_path_name;
+    test_msg.mdata_fs_open.path_name_len = strlen(test_path_name);
+    test_msg.mdata_fs_open.flags = O_RDWR;
+
+    printString("test_msg generated!\n", -1);
+    int test_fd = do_open(&test_msg);
+    printString("test fd: ", -1);printInt32(test_fd);printString("\n", -1);
+    printString("test fd's access mode: ", -1);printInt32(pcb_table[1].filp_table[test_fd]->fd_inode->access_mode);printString("\n", -1);
+    printString("test fd's start sector: ", -1);printInt32(pcb_table[1].filp_table[test_fd]->fd_inode->nr_start_sector);printString("\n", -1);
+    
+    //--------------test end--------------
+
     printString("init fs ok! fs service is waiting for message...\n", -1);
     Message msg;
     while(1){
         sys_ipc_recv(PID_ANY, &msg);
         switch(msg.type){
             case MSG_FS_OPEN:
+                msg.mdata_response.fd = do_open(&msg);
                 break;
             case MSG_FS_CLOSE:
                 break;
@@ -51,11 +71,20 @@ void init_fs(){
         super_block_table[i].dev_no = NO_DEV;
     }
 
-    mkfs();
-    printString("mkfs ok!\n", -1);
 
     load_super_block();
     printString("load super block ok!\n", -1);
+
+    Super_Block* sb = get_super_block(MAKE_DEV(DEV_HD, 1));
+    if(sb->magic != FS_OSY_MAGIC_V1){
+        printString("there is no file system, create a system...\n", -1);
+        mkfs();
+        printString("mkfs ok!\n", -1);
+    }
+    else{
+        printString("file system was detected!\n", -1);
+    }
+
     
     root_inode = get_inode(MAKE_DEV(DEV_HD, 1) ,ROOT_INODE);
     printString("load root inode ok!\n", -1);
@@ -162,10 +191,10 @@ void mkfs(){
     inode_ptr->nr_sectors = NR_DEFAULT_FILE_SECTORS;
 
     for(int i = 0; i < NR_CONSOLES; i++){
-        (inode_ptr[i + 1]).access_mode = ACCESS_MODE_CHAR_SPECIAL;
-        (inode_ptr[i + 1]).file_size = 0;
-        (inode_ptr[i + 1]).nr_start_sector = MAKE_DEV(DEV_TTY, i);
-        (inode_ptr[i + 1]).nr_sectors = 0;
+        ((INode*)(&fs_buf[(i + 1) * INODE_SIZE]))->access_mode = ACCESS_MODE_CHAR_SPECIAL;
+        ((INode*)(&fs_buf[(i + 1) * INODE_SIZE]))->file_size = 0;
+        ((INode*)(&fs_buf[(i + 1) * INODE_SIZE]))->nr_start_sector = MAKE_DEV(DEV_TTY, i);
+        ((INode*)(&fs_buf[(i + 1) * INODE_SIZE]))->nr_sectors = 0;
     }
     write_sector(2 + sb.nr_imap_sectors + sb.nr_smap_sectors, fs_buf, SECTOR_SIZE);
     printString("inode init finish\n", -1);
@@ -199,9 +228,12 @@ void mkfs(){
     root_dir_entry_ptr->nr_inode = 8;
     strcpy((char*)(root_dir_entry_ptr->file_name), "dev_tty6");
     root_dir_entry_ptr++;
+    write_sector(sb.nr_first_data_sector, fs_buf, SECTOR_SIZE);
+    memset(fs_buf, 0, SECTOR_SIZE);
+    root_dir_entry_ptr = (Dir_Entry*)fs_buf;
     root_dir_entry_ptr->nr_inode = 9;
     strcpy((char*)(root_dir_entry_ptr->file_name), "dev_tty7");
-    write_sector(2 + sb.nr_first_data_sector, fs_buf, SECTOR_SIZE);
+    write_sector(sb.nr_first_data_sector + 1, fs_buf, SECTOR_SIZE);
     printString("root directory init finish\n", -1);
 
 }
@@ -241,27 +273,42 @@ INode* get_inode(uint32_t dev, int nr_inode){
             inode_ptr->process_counter++;
             return inode_ptr;
         }
-        else{
+        else if(inode_ptr->dev_no == INODE_INVALID){
             inode_ptr_for_load = inode_ptr;
             break;
         }
+        
+        inode_ptr++;
     }
     if(!inode_ptr_for_load){
         return 0; // inode table is full, error (todo: report error)
     }
 
     // not in memory, load inode from hard disk
+    debug_log("NOT IN MEMORY!!!!!!!");
     Super_Block* sbp = get_super_block(dev);
+    uint8_t buf[SECTOR_SIZE];
     uint32_t nr_block = 1 + 1 + sbp->nr_imap_sectors + sbp->nr_smap_sectors + 
         ((nr_inode - 1) / (SECTOR_SIZE / INODE_SIZE));
-    read_sector(nr_block, fs_buf, SECTOR_SIZE);
+    
+    read_sector(nr_block, buf, SECTOR_SIZE);
 
+    // printString("BLOCK: ", -1);printInt32(nr_block);printString("\n", -1);
+    // printString("DADDRS: ", -1);printInt32(nr_block * 512);printString("\n", -1);
+    // printString("DADDR: ", -1);printInt32(nr_block * 512 + (0xA - 1) * 32);printString("\n", -1);
+
+    // printString("ADDR: ", -1);printInt32((uint32_t)buf);printString("\n", -1);
     // copy from buffer (hard disk)
-    inode_ptr = ((INode*)fs_buf) + ((nr_inode - 1) % (SECTOR_SIZE / INODE_SIZE));
+    inode_ptr = (INode*)(buf + (((nr_inode - 1) % (SECTOR_SIZE / INODE_SIZE)) * INODE_SIZE));
+    // printString("OFFSET: ", -1);printInt32(((uint32_t)inode_ptr - (uint32_t)buf) / 32);printString(" * inode size\n", -1);
+    // printString("NR INODE: ", -1);printInt32(nr_inode);printString("\n", -1);
+    // printString("INODE INDEX: ", -1);printInt32(((nr_inode - 1) % (SECTOR_SIZE / INODE_SIZE)));printString("\n", -1);
+    // printString("ACCESS MODE: ", -1);printInt32(inode_ptr->access_mode);printString("\n", -1);
     inode_ptr_for_load->access_mode = inode_ptr->access_mode;
     inode_ptr_for_load->file_size = inode_ptr->file_size;
     inode_ptr_for_load->nr_start_sector = inode_ptr->nr_start_sector;
     inode_ptr_for_load->nr_sectors = inode_ptr->nr_sectors;
+
 
     // generate data and save in memory
     inode_ptr_for_load->dev_no = dev;

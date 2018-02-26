@@ -2,6 +2,7 @@
 #define _FS_H__
 
 #include "type.h"
+#include "ipc.h"
 
 #define NR_DEFAULT_FILE_SECTORS 2048
 
@@ -54,10 +55,11 @@ typedef struct{
 #define INODE_SIZE          32
 #define ROOT_INODE          1
 
-#define MAX_FILENAME_LEN    64
+#define MAX_FILENAME_LEN    60
+#define MAX_FILEPATH_LEN    128
 typedef struct{
     uint32_t    nr_inode;
-    char        file_name[64];
+    char        file_name[60];
 }Dir_Entry;
 #define DIR_ENTRY_SIZE      sizeof(Dir_Entry)
 
@@ -69,6 +71,25 @@ typedef struct {
 }File_Descriptor;
 #define NR_FILE_DESCRIPTOR  64
 
+
+// fs/fs_main.c
+extern uint8_t* fs_buf;
 void fs_main();
+void read_sector(uint32_t sector, void* buf, uint32_t len);
+void write_sector(uint32_t sector, void* buf, uint32_t len);
+INode* get_inode(uint32_t dev, int nr_inode);
+Super_Block* get_super_block(uint32_t dev);
+
+// fs/open.c
+void* sync_inode(INode* inode_ptr);
+int alloc_imap(uint32_t dev);
+int alloc_smap(uint32_t dev, int nr_secotrs);
+INode* init_inode(uint32_t dev, uint32_t inode_nr, uint32_t start_sector_nr);
+void new_dir_entry(INode* dir_inode, int file_inode_nr, char* file_name);
+int do_open(Message* msg);
+
+// fs/path.c
+int search_file(char* path);
+int strip_path(char* file_name, const char* path_name, INode** inode_pp);
 
 #endif

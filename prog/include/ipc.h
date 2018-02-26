@@ -27,6 +27,7 @@ typedef struct{
         MData_Response      mdata_response;
         MData_HD_Read       mdata_hd_read;
         MData_HD_Write      mdata_hd_write;
+        MData_FS_Open       mdata_fs_open;
     };
 
 }Message;

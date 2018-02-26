@@ -5,6 +5,9 @@
 #define RESPONSE_FAIL 0
 typedef struct{
     uint32_t status;
+    union{
+        uint32_t fd;
+    };
 }MData_Response;
 
 typedef struct{
@@ -20,7 +23,11 @@ typedef struct{
 }MData_HD_Write;
 
 typedef struct{
-    uint32_t dummy;
-}MData_FS_Read;
+    uint32_t path_name;
+    uint32_t path_name_len;
+    uint32_t flags;
+}MData_FS_Open;
+
+
 
 #endif

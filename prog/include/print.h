@@ -14,5 +14,8 @@ void printInt16(uint16_t n);
 
 void printInt8(uint8_t n);
 
+void debug_log(char* log);
+
+void error_log(char* log);
 
 #endif

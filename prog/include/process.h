@@ -4,6 +4,7 @@
 #include "protect.h"
 #include "tty.h"
 #include "ipc.h"
+#include "fs.h"
 
 #define MAX_PROCESS_NUM     10
 #define STACK_SIZE          4*1024
@@ -26,7 +27,9 @@
 #define PID_INVALID             0xFFFFFFFD
 #define PID_TTY                 0
 #define PID_HD                  1
+#define PID_FS                  2
 
+#define FILP_TABLE_SIZE         64
 
 typedef struct PCB_struct{
     //--------------same as asm macro----------------
@@ -47,6 +50,8 @@ typedef struct PCB_struct{
     Message*            message_ptr;
     struct PCB_struct*  message_queue;
     struct PCB_struct*  next_sender;
+
+    File_Descriptor*    filp_table[FILP_TABLE_SIZE];
 }PCB;
 
 void schedule();                    //process.c

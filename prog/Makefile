@@ -26,7 +26,11 @@ OBJS		= kernel/kernel.o \
 				init/protect.o \
 				lib/string.o \
 				lib/print.o \
-				fs/fs_main.o
+				lib/open.o \
+				fs/fs_main.o \
+				fs/open.o \
+				fs/path.o \
+				fs/read_write.o
 
 .PHONY: everything final image clean realclean disasm all buildimg
 
@@ -94,8 +98,20 @@ init/protect.o: init/protect.c
 lib/string.o: lib/string.c
 	$(CC) $(CFLAGS) -o $@ $<
 
+lib/open.o: lib/open.c
+	$(CC) $(CFLAGS) -o $@ $<
+
 lib/print.o: lib/print.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 fs/fs_main.o: fs/fs_main.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+fs/open.o: fs/open.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+fs/path.o: fs/path.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+fs/read_write.o: fs/read_write.c
 	$(CC) $(CFLAGS) -o $@ $<

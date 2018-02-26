@@ -22,7 +22,7 @@ void hd_handler(){
     // printString("HD_HANDLER!\n", -1);
     hd_status = in_byte(REG_STATUS);
     sys_ipc_int_send(PID_HD);
-    printString("HD_HANDLER DONE!\n", -1);
+    // printString("HD_HANDLER DONE!\n", -1);
 }
 
 uint8_t device_reg_generate(uint32_t lba_mode, uint32_t drive, uint32_t lba_low_addr_4){
@@ -76,7 +76,7 @@ void hd_read(Message* msg){
     uint32_t remain_len = msg_data->len;
     uint32_t drive = 0;
 
-    printString("read sector no.", -1);printInt32(sector);printString("\n", -1);
+    // printString("read sector no.", -1);printInt32(sector);printString("\n", -1);
 
     // set command registers
     HD_CMD cmd;

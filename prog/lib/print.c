@@ -109,3 +109,11 @@ void printInt8(uint8_t n){
 		}
 	}
 }
+
+void debug_log(char* log){
+	printString("DEBUG: ", -1);printString(log, -1);printString("\n", -1);
+}
+
+void error_log(char* log){
+	printString("ERROR: ", -1);printString(log, -1);printString("\n", -1);
+}
