@@ -7,6 +7,8 @@
 #include "tty.h"
 #include "fs.h"
 
+#define min(a,b) ((a) < (b) ? (a) : (b))
+
 //GDT
 extern uint8_t      gdt_ptr[6];//limit(2Byte)  Base(4Byte)
 extern Descriptor   gdt[GDT_SIZE];

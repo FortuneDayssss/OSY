@@ -1,7 +1,7 @@
 ENTRYPOINT	= 0x00010000
 ENTRYOFFSET	= 0x00000000
 SETUPSECNUM	= 3
-SYSSECNUM	= 70
+SYSSECNUM	= 100
 
 ASM		= nasm
 CC		= gcc
@@ -27,6 +27,9 @@ OBJS		= kernel/kernel.o \
 				lib/string.o \
 				lib/print.o \
 				lib/open.o \
+				lib/read.o \
+				lib/write.o \
+				lib/close.o \
 				fs/fs_main.o \
 				fs/open.o \
 				fs/path.o \
@@ -102,6 +105,15 @@ lib/open.o: lib/open.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 lib/print.o: lib/print.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+lib/read.o: lib/read.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+lib/write.o: lib/write.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+lib/close.o: lib/close.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 fs/fs_main.o: fs/fs_main.c

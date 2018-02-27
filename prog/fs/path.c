@@ -145,30 +145,3 @@ int search_file(char* path){
 
     return 0;
 }
-
-int strip_path(char* file_name, const char* path_name, INode** inode_pp){
-    if(path_name == 0)
-        return -1;
-    
-    const char* pp = path_name;
-    char* fp = file_name;
-
-    if(*fp == '/')
-        fp++;
-
-    // copy file name
-    while(*fp){
-        if(*fp == '/')
-            return -1;
-        *fp = *pp;
-        fp++;pp++;
-        if(fp - file_name > MAX_FILENAME_LEN)
-            break;
-    }
-    *fp = '\0';
-
-    // set inode_pp = root inode addr
-    *inode_pp = root_inode;
-
-    return 0;
-}

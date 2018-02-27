@@ -19,20 +19,35 @@ void fs_main(){
     init_fs();
 
     //--------------test------------------
-    Message test_msg;
-    char test_path_name[20] = "/test_file_2";
-    test_msg.src_pid = 1;
-    test_msg.type = MSG_FS_OPEN;
-    test_msg.mdata_fs_open.path_name = (uint32_t)test_path_name;
-    test_msg.mdata_fs_open.path_name_len = strlen(test_path_name);
-    test_msg.mdata_fs_open.flags = O_RDWR;
+    // Message test_msg;
+    // char test_path_name[20] = "/test_file_2";
+    // test_msg.src_pid = 1;
+    // test_msg.type = MSG_FS_OPEN;
+    // test_msg.mdata_fs_open.path_name = (uint32_t)test_path_name;
+    // test_msg.mdata_fs_open.path_name_len = strlen(test_path_name);
+    // test_msg.mdata_fs_open.flags = O_RDWR;
 
-    printString("test_msg generated!\n", -1);
-    int test_fd = do_open(&test_msg);
-    printString("test fd: ", -1);printInt32(test_fd);printString("\n", -1);
-    printString("test fd's access mode: ", -1);printInt32(pcb_table[1].filp_table[test_fd]->fd_inode->access_mode);printString("\n", -1);
-    printString("test fd's start sector: ", -1);printInt32(pcb_table[1].filp_table[test_fd]->fd_inode->nr_start_sector);printString("\n", -1);
+    // printString("test_msg generated!\n", -1);
+    // int test_fd = do_open(&test_msg);
+    // printString("test fd: ", -1);printInt32(test_fd);printString("\n", -1);
+    // printString("test fd's access mode: ", -1);printInt32(pcb_table[1].filp_table[test_fd]->fd_inode->access_mode);printString("\n", -1);
+    // printString("test fd's start sector: ", -1);printInt32(pcb_table[1].filp_table[test_fd]->fd_inode->nr_start_sector);printString("\n", -1);
     
+
+    // //----
+    // test_msg.type = MSG_FS_WRITE;
+    // char test_write_data[20] = "test-wwwww-data~~";
+    // printString(test_write_data, -1);printString("\n", -1);
+    // test_msg.mdata_fs_write.buf = (uint32_t)(&test_write_data[0]);
+    // test_msg.mdata_hd_write.len = strlen(test_write_data);
+    // // test_msg.mdata_hd_write.len = 16;
+    // test_msg.mdata_fs_write.fd = test_fd;
+
+    // int wlen = do_read(&test_msg);
+    // printString("test wlen: ", -1);printInt32(wlen);printString("\n", -1);
+    // printString(test_write_data, -1);printString("\n", -1);
+
+
     //--------------test end--------------
 
     printString("init fs ok! fs service is waiting for message...\n", -1);
@@ -41,13 +56,19 @@ void fs_main(){
         sys_ipc_recv(PID_ANY, &msg);
         switch(msg.type){
             case MSG_FS_OPEN:
+                debug_log("get open message-----------");
                 msg.mdata_response.fd = do_open(&msg);
+                debug_log("get open message-----------");
                 break;
             case MSG_FS_CLOSE:
+                msg.mdata_response.status = do_close(&msg);
                 break;
             case MSG_FS_READ:
+                debug_log("get read message-----------");
+                msg.mdata_response.len = do_read(&msg);
                 break;
             case MSG_FS_WRITE:
+                msg.mdata_response.len = do_write(&msg);
                 break;
             case MSG_FS_UNLINK:
                 break;
@@ -56,6 +77,7 @@ void fs_main(){
             default:
                 break;
         }
+        sys_ipc_send(msg.src_pid, &msg);
     }
 }
 
@@ -113,8 +135,8 @@ void write_sector(uint32_t sector, void* buf, uint32_t len){
     printString("fs write sector ok\n", -1);
 }
 
-// uint8_t fs_buf[SECTOR_SIZE * 2];
-uint8_t* fs_buf = (uint8_t*)(0x00600000);
+uint8_t fs_buf[SECTOR_SIZE * 2];
+// uint8_t* fs_buf = (uint8_t*)(0x00600000);
 
 void mkfs(){
     /*  sectors in hard disk
@@ -316,4 +338,8 @@ INode* get_inode(uint32_t dev, int nr_inode){
     inode_ptr_for_load->process_counter = 1;
 
     return inode_ptr_for_load;
+}
+
+INode* put_inode(INode* inode_ptr){
+    inode_ptr->process_counter--;
 }

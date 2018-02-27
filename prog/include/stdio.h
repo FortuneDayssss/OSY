@@ -7,6 +7,13 @@
 
 
 int open(const char* path_name, int flags);
+
+int read(int fd, void* buf, int count);
+
+int write(int fd, void* buf, int count);
+
+int close(int fd);
+
 // todo: close, read, write, unlink, getpid ...
 
 #endif

@@ -73,11 +73,12 @@ typedef struct {
 
 
 // fs/fs_main.c
-extern uint8_t* fs_buf;
+// extern uint8_t* fs_buf;
 void fs_main();
 void read_sector(uint32_t sector, void* buf, uint32_t len);
 void write_sector(uint32_t sector, void* buf, uint32_t len);
 INode* get_inode(uint32_t dev, int nr_inode);
+INode* put_inode(INode* inode_ptr);
 Super_Block* get_super_block(uint32_t dev);
 
 // fs/open.c
@@ -87,9 +88,13 @@ int alloc_smap(uint32_t dev, int nr_secotrs);
 INode* init_inode(uint32_t dev, uint32_t inode_nr, uint32_t start_sector_nr);
 void new_dir_entry(INode* dir_inode, int file_inode_nr, char* file_name);
 int do_open(Message* msg);
+int do_close(Message* msg);
+
+// fs/read_write.c
+int do_read(Message* msg);
+int do_write(Message* msg);
 
 // fs/path.c
 int search_file(char* path);
-int strip_path(char* file_name, const char* path_name, INode** inode_pp);
 
 #endif

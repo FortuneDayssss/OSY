@@ -101,6 +101,15 @@ int do_open(Message* msg){
 }
 
 
+int do_close(Message* msg){
+    int fd = msg->mdata_fs_close.fd;
+    put_inode(pcb_table[msg->src_pid].filp_table[fd]->fd_inode);
+    pcb_table[msg->src_pid].filp_table[fd]->fd_inode = INODE_INVALID;
+    pcb_table[msg->src_pid].filp_table[fd] = 0;
+    return 0;
+}
+
+
 INode* create_file(char* path, int flags){
     char dir_name[MAX_FILENAME_LEN];
     char file_name[MAX_FILENAME_LEN];

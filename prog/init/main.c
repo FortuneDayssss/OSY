@@ -10,6 +10,7 @@
 #include "hd.h"
 #include "fs.h"
 #include "message.h"
+#include "stdio.h"
 
 void sleep(int time){
     for(int i = 0; i < time; i++)
@@ -32,7 +33,12 @@ void p1test(){
     msg.mdata_hd_read.sector = 0;
     msg.mdata_hd_read.buf_addr = (uint32_t)(&buf);
     msg.mdata_hd_read.len = 4;
+
+    debug_log("ZZZZZ---");
+    test();
+    debug_log("AAAAA---");
     ipc_send(PID_HD, &msg);
+    debug_log("BBBBB---");
     ipc_recv(PID_HD, &msg);
     printString("response:  ", -1);printInt32(msg.mdata_response.status);printString("\n", -1);
     printString("buf data:  ", -1);printInt32(buf);printString("\n", -1);
@@ -46,19 +52,22 @@ void p1test(){
 
 
 void p3test(){
-    for(int i = 0; i < 5; i++){
-        ttywrite("P3!\n", -1);
-        sleep(100);
-        sleep(100);
-    }
-    // pcb_table[1].state = PROCESS_STOPPED;
-    Message msg;
-    while(1){
-        ipc_recv(PID_ANY, &msg);
-        ttywrite("P3!!\n", -1);
-        sleep(100);
-        sleep(100);
-    }
+    sleep(1000);
+    char buf[20];
+    printString("before open!\n", -1);
+    int fd = open("/test_file_2", O_RDWR);
+    printString("open ok!\n", -1);
+    int len = read(fd, buf, 20);
+    buf[len] = '\0';
+    debug_log("read ok!!!");
+    printString("data in /test_file_2: ", -1);printString(buf, -1);printString("\n", -1);
+    close(fd);
+
+    fd = open("/dev_tty1", O_RDWR);
+    printString("fd: ", -1);printInt32(fd);printString("\n", -1);
+
+
+    while(1){}
 }
 
 int init_dummy_process(PCB* pcb){
@@ -76,7 +85,7 @@ int main(){
     create_process(hd_main, PRIVILEGE_KERNEL, 0);
     create_process(fs_main, PRIVILEGE_KERNEL, 0);
     // create_process(p1test, PRIVILEGE_USER, 0);
-    // create_process(p3test, PRIVILEGE_USER, 0);    
+    create_process(p3test, PRIVILEGE_USER, 0);
     
     current_process = pcb_table;
     

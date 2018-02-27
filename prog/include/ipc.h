@@ -28,6 +28,9 @@ typedef struct{
         MData_HD_Read       mdata_hd_read;
         MData_HD_Write      mdata_hd_write;
         MData_FS_Open       mdata_fs_open;
+        MData_FS_Close      mdata_fs_close;
+        MData_FS_Read       mdata_fs_read;
+        MData_FS_Write      mdata_fs_write;
     };
 
 }Message;

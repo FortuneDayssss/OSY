@@ -7,6 +7,7 @@ typedef struct{
     uint32_t status;
     union{
         uint32_t fd;
+        uint32_t len;
     };
 }MData_Response;
 
@@ -28,6 +29,20 @@ typedef struct{
     uint32_t flags;
 }MData_FS_Open;
 
+typedef struct{
+    uint32_t fd;
+}MData_FS_Close;
 
+typedef struct{
+    uint32_t fd;
+    uint32_t buf;
+    uint32_t len;
+}MData_FS_Read;
+
+typedef struct{
+    uint32_t fd;
+    uint32_t buf;
+    uint32_t len;
+}MData_FS_Write;
 
 #endif
