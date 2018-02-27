@@ -65,12 +65,12 @@ int search_file(char* path){
                 files_in_dir = (Dir_Entry*)buf;
                 for(int de_index_in_sec = 0; de_index_in_sec < SECTOR_SIZE / DIR_ENTRY_SIZE; de_index_in_sec++){
                     // printString("find filename: ", -1);printString(cp, -1);printString("\n", -1);
-                    // printString("iterate filename: ", -1);printString(files_in_dir[de_index_in_sec].file_name, -1);printString("\n", -1);
-                    if(files_in_dir[i].nr_inode != INODE_INVALID && strcmp_fix(cp, files_in_dir[de_index_in_sec].file_name, file_name_len) == 0){
+                    printString("iterate filename: ", -1);printString(files_in_dir[de_index_in_sec].file_name, -1);printString("\n", -1);
+                    if(files_in_dir[i].nr_inode != INODE_INVALID && (strcmp_fix(cp, files_in_dir[de_index_in_sec].file_name, file_name_len) == 0)){
                         printString("MATCH!!!\n", -1);
                         printString(cp, file_name_len);printString(" = ", -1);printString(files_in_dir[de_index_in_sec].file_name, -1);printString("\n", -1);
                         founded = 1;
-                        founded_file = &files_in_dir[i];
+                        founded_file = &(files_in_dir[de_index_in_sec]);
                         break;
                     }
                 }
@@ -86,6 +86,7 @@ int search_file(char* path){
             }
             else{
                 nr_file_inode = founded_file->nr_inode;
+                printString("founded file inode nr: ", -1);printInt32(nr_file_inode);printString("\n", -1);
                 cp += file_name_len;
                 if(*cp == '/' && *(cp + 1) != '\0'){ // next step
                     cp++;

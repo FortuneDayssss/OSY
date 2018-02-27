@@ -17,7 +17,10 @@ enum msgtype{
     MSG_FS_READ,
     MSG_FS_WRITE,
     MSG_FS_UNLINK,
-    MSG_FS_RESUME_PROC
+    MSG_FS_RESUME_PROC,
+    MSG_TTY_READ,
+    MSG_TTY_WRITE,
+    MSG_TTY_READ_OK
 };
 
 typedef struct{
@@ -31,6 +34,9 @@ typedef struct{
         MData_FS_Close      mdata_fs_close;
         MData_FS_Read       mdata_fs_read;
         MData_FS_Write      mdata_fs_write;
+        MData_TTY_Read      mdata_tty_read;
+        MData_TTY_Write     mdata_tty_write;
+        MData_TTY_Read_OK   mdata_tty_read_ok;
     };
 
 }Message;

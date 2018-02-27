@@ -15,6 +15,8 @@ void init_clock(){
 }
 
 void clock_handler(){
+    sys_ipc_int_send(PID_TTY);
+
     sys_ticks++;
 
     current_process->tick--;

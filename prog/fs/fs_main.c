@@ -52,32 +52,44 @@ void fs_main(){
 
     printString("init fs ok! fs service is waiting for message...\n", -1);
     Message msg;
+    uint32_t forward_pid;
+    uint32_t forward_len;
     while(1){
         sys_ipc_recv(PID_ANY, &msg);
         switch(msg.type){
             case MSG_FS_OPEN:
                 debug_log("get open message-----------");
                 msg.mdata_response.fd = do_open(&msg);
+                sys_ipc_send(msg.src_pid, &msg);
                 debug_log("get open message-----------");
                 break;
             case MSG_FS_CLOSE:
                 msg.mdata_response.status = do_close(&msg);
+                sys_ipc_send(msg.src_pid, &msg);
                 break;
             case MSG_FS_READ:
                 debug_log("get read message-----------");
                 msg.mdata_response.len = do_read(&msg);
+                // process ipc responce in do_read function
+                // because if read from tty, os should block user process and wait for key input
                 break;
             case MSG_FS_WRITE:
                 msg.mdata_response.len = do_write(&msg);
+                sys_ipc_send(msg.src_pid, &msg);
                 break;
             case MSG_FS_UNLINK:
                 break;
             case MSG_FS_RESUME_PROC:
                 break;
+            case MSG_TTY_READ_OK:
+                forward_pid = msg.mdata_tty_read_ok.user_pid;
+                forward_len = msg.mdata_tty_read_ok.len;
+                msg.mdata_response.len = forward_len;
+                sys_ipc_send(forward_pid, &msg);
+                break;
             default:
                 break;
         }
-        sys_ipc_send(msg.src_pid, &msg);
     }
 }
 

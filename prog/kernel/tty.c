@@ -14,13 +14,16 @@ void screen_flush(TTY_Console *pc);
 
 //tty
 uint32_t sys_tty_write(uint8_t *buf, uint32_t size){
+    int counter = 0;
     for (int i = 0; (size == -1 || i < size) && buf[i] != '\0' && current_process->tty->keyBuffer.count < TTY_BUFFER_SIZE; i++){
         *(current_process->tty->keyBuffer.head) = buf[i];
         current_process->tty->keyBuffer.head++;
         if (current_process->tty->keyBuffer.head == current_process->tty->keyBuffer.buffer + TTY_BUFFER_SIZE)
         current_process->tty->keyBuffer.head = current_process->tty->keyBuffer.buffer;
         current_process->tty->keyBuffer.count++;
+        counter++;
     }
+    return counter;
 }
 
 void switch_tty(int n){
@@ -33,6 +36,7 @@ void switch_tty(int n){
 void tty_init(TTY *pt){
     tty_buffer_init(&(pt->keyBuffer));
     tty_console_init(&(pt->console), pt - tty_table);
+    pt->have_hooked_proc = 0;
 }
 
 //local parameters for keyboard
@@ -50,27 +54,82 @@ void tty_read_loop(TTY *pt){
         if(have_input && (key != 0) && make == 1 && key >= '1' && key <= '9' && ctrl){//ctrl+1~9, switch tty
             switch_tty(key - '1');
         }
-        else if(have_input && key ==ENTER && make == 1){                    //enter, roll up screen
+        else if(have_input && key ==ENTER && make == 1){//enter, roll up screen
             screen_roll_up(pt - tty_table);
+
+            // press enter to finish process hooked reading
+            if(pt->have_hooked_proc){// key => process buffer
+                pt->have_hooked_proc = 0;
+                Message msg;
+                msg.type = MSG_TTY_READ_OK;
+                msg.mdata_tty_read_ok.user_pid = pt->hooked_pid;
+                msg.mdata_tty_read_ok.len = pt->copied_len;
+                sys_ipc_send(PID_FS, &msg);
+            }
         }
-        else if(have_input && key != 0 && (!(key & FLAG_EXT)) && make == 1){//screen output
+        else if(have_input && key != 0 && (!(key & FLAG_EXT)) && make == 1){//char output
+            // process buffer is full, finish process hooked reading
+            if(pt->have_hooked_proc){// key => process buffer
+                pt->proc_buf[pt->copied_len] = key;
+                pt->copied_len++;
+                if(pt->copied_len >= pt->proc_buf_len){
+                    pt->have_hooked_proc = 0;
+                    Message msg;
+                    msg.type = MSG_TTY_READ_OK;
+                    msg.mdata_tty_read_ok.user_pid = pt->hooked_pid;
+                    msg.mdata_tty_read_ok.len = pt->copied_len;
+                    sys_ipc_send(PID_FS, &msg);
+                }
+            }
+            // key => tty buffer
             *(pt->keyBuffer.head) = key;
             pt->keyBuffer.head++;
             if (pt->keyBuffer.head == pt->keyBuffer.buffer + TTY_BUFFER_SIZE)
-                pt->keyBuffer.head = pt->keyBuffer.buffer;
+                    pt->keyBuffer.head = pt->keyBuffer.buffer;
             pt->keyBuffer.count++;
+            
         }
     }while(have_input);
 }
 
 void tty_write_loop(TTY *pt){
-    if (pt->keyBuffer.count > 0){
+    while(pt->keyBuffer.count > 0){
         screen_out_char(pt - tty_table, *(pt->keyBuffer.tail));
         pt->keyBuffer.tail++;
         if (pt->keyBuffer.tail == pt->keyBuffer.buffer + TTY_BUFFER_SIZE)
             pt->keyBuffer.tail = pt->keyBuffer.buffer;
         pt->keyBuffer.count--;
     }
+}
+
+int tty_do_read(Message* msg){
+    TTY* tty = &tty_table[msg->mdata_tty_read.nr_tty];
+    if(tty->have_hooked_proc){
+        return 0;
+    }
+    else{
+        tty->have_hooked_proc = 1;
+        tty->hooked_pid = msg->mdata_tty_read.user_pid;
+        tty->proc_buf = (uint8_t*)msg->mdata_tty_read.buf;
+        tty->proc_buf_len = msg->mdata_tty_read.len;
+        return 1;
+    }
+}
+
+int tty_do_write(Message* msg){
+    TTY* tty = &tty_table[msg->mdata_tty_write.nr_tty];
+    uint8_t* buf = (uint8_t*)(msg->mdata_tty_write.buf);
+    int size = msg->mdata_tty_write.len;
+    int counter = 0;
+    for (int i = 0; (size == -1 || i < size) && buf[i] != '\0' && tty->keyBuffer.count < TTY_BUFFER_SIZE; i++){
+        *(tty->keyBuffer.head) = buf[i];
+        tty->keyBuffer.head++;
+        if (tty->keyBuffer.head == tty->keyBuffer.buffer + TTY_BUFFER_SIZE)
+        tty->keyBuffer.head = tty->keyBuffer.buffer;
+        tty->keyBuffer.count++;
+        counter++;
+    }
+    return counter;
 }
 
 void tty_main(){
@@ -81,9 +140,27 @@ void tty_main(){
     current_tty = tty_table;
 
     //tty loop
+    Message msg;
     while (1){
         tty_read_loop(current_tty);
         tty_write_loop(current_tty);
+        sys_ipc_recv(PID_ANY, &msg);
+        switch(msg.type){
+            case MSG_TTY_READ:
+                msg.type = MSG_RESPONSE;
+                msg.mdata_response.status = tty_do_read(&msg);
+                sys_ipc_send(msg.src_pid, &msg);
+                break;
+            case MSG_TTY_WRITE:
+                msg.type = MSG_RESPONSE;
+                msg.mdata_response.len = tty_do_write(&msg);
+                sys_ipc_send(msg.src_pid, &msg);
+                break;
+            case MSG_INT:
+                break;
+            default:
+                break;
+        }
     }
 }
 

@@ -29,10 +29,14 @@ uint8_t device_reg_generate(uint32_t lba_mode, uint32_t drive, uint32_t lba_low_
     return 0xA0 | ((lba_mode & 1) << 6) | ((drive & 1) << 4) | (lba_low_addr_4 & 0xF);
 }
 
-void hd_cmd_out(HD_CMD* cmd){
-	while(in_byte(REG_STATUS) & STATUS_BSY){
+void wait_for_hd_busy(){
+    while((in_byte(REG_STATUS) & STATUS_BSY) != 0){
         //todo: yield
     }
+}
+
+void hd_cmd_out(HD_CMD* cmd){
+	wait_for_hd_busy();
 
 	out_byte(REG_DEV_CTRL, 0);
 
@@ -59,6 +63,7 @@ void hd_identify(int drive){
     printString("get!\n", -1);
 
     uint8_t hdbuf[SECTOR_SIZE * 2];
+    wait_for_hd_busy();
     port_read_16(REG_DATA, hdbuf, 512 * 2);
     printString("HD size: 0x", -1);
     uint32_t sectors = ((int)((uint16_t*)hdbuf)[61] << 16) + ((uint16_t*)hdbuf)[60];
@@ -92,8 +97,10 @@ void hd_read(Message* msg){
     // copy data from sector to buffer
     uint8_t hdbuf[SECTOR_SIZE * 2];
     do{
+
         uint32_t copy_len = remain_len < SECTOR_SIZE ? remain_len : SECTOR_SIZE;
         sys_ipc_recv(PID_INT, 0);
+    	wait_for_hd_busy();
         port_read_16(REG_DATA, hdbuf, SECTOR_SIZE);
         
         memcpy(buf_ptr, hdbuf, copy_len);
@@ -131,6 +138,7 @@ void hd_write(Message* msg){
     do{
         uint32_t copy_len = remain_len < SECTOR_SIZE ? remain_len : SECTOR_SIZE;
         memcpy(hdbuf, buf_ptr, copy_len);
+        wait_for_hd_busy();
         port_write_16(REG_DATA, hdbuf, SECTOR_SIZE);
         sys_ipc_recv(PID_INT, 0);
 

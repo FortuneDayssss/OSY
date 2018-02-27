@@ -53,19 +53,26 @@ void p1test(){
 
 void p3test(){
     sleep(1000);
-    char buf[20];
+    char buf[60] = "hello world tty";
     printString("before open!\n", -1);
     int fd = open("/test_file_2", O_RDWR);
-    printString("open ok!\n", -1);
-    int len = read(fd, buf, 20);
-    buf[len] = '\0';
-    debug_log("read ok!!!");
-    printString("data in /test_file_2: ", -1);printString(buf, -1);printString("\n", -1);
-    close(fd);
-
-    fd = open("/dev_tty1", O_RDWR);
-    printString("fd: ", -1);printInt32(fd);printString("\n", -1);
-
+    // int fd = open("/dev_tty0", O_RDWR);
+    if(fd != -1){
+        printString("open ok!\n", -1);
+        printInt32(pcb_table[3].filp_table[fd]->fd_inode->nr_inode);
+        int len = read(fd, buf, 5);
+        buf[len] = '\0';
+        printString("\n", -1);
+        debug_log("read from tty finish!");
+        printString(buf, -1);
+        // buf[len] = '\0';
+        // debug_log("read ok!!!");
+        // printString("data in /test_file_2: ", -1);printString(buf, -1);printString("\n", -1);
+        // close(fd);
+    }
+    else{
+        error_log("open fail");
+    }
 
     while(1){}
 }

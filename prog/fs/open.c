@@ -83,13 +83,14 @@ int do_open(Message* msg){
         fd_ptr->fd_mode = flags;
         fd_ptr->fd_pos = 0;
 
-        if((fd_ptr->fd_mode & ACCESS_MODE_TYPE_MASK) == ACCESS_MODE_CHAR_SPECIAL){// tty file
-            // todo: open tty device
+        if((inode_ptr->access_mode & ACCESS_MODE_TYPE_MASK) == ACCESS_MODE_CHAR_SPECIAL){// tty file
+            // ...
+            debug_log("FILE IS TTY!!!!!!!!!!!!!");
         }
-        else if((fd_ptr->fd_mode & ACCESS_MODE_TYPE_MASK) == ACCESS_MODE_DIRECTORY){// dir file
+        else if((inode_ptr->access_mode & ACCESS_MODE_TYPE_MASK) == ACCESS_MODE_DIRECTORY){// dir file
             //...
         }
-        else if((fd_ptr->fd_mode & ACCESS_MODE_TYPE_MASK) == ACCESS_MODE_REGULAR){// regular file
+        else if((inode_ptr->access_mode & ACCESS_MODE_TYPE_MASK) == ACCESS_MODE_REGULAR){// regular file
             //...
         }
     }

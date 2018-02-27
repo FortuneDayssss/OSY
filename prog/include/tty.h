@@ -41,6 +41,11 @@ void tty_buffer_init(TTY_KeyBuffer* pb);
 typedef struct{
     TTY_KeyBuffer   keyBuffer;
     TTY_Console     console;
+    uint32_t        have_hooked_proc;
+    uint32_t        hooked_pid;
+    char*           proc_buf;
+    uint32_t        proc_buf_len;
+    uint32_t        copied_len;
 }TTY;
 
 void tty_main();

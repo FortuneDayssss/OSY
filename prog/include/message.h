@@ -45,4 +45,22 @@ typedef struct{
     uint32_t len;
 }MData_FS_Write;
 
+typedef struct{
+    uint32_t nr_tty;
+    uint32_t user_pid;
+    uint32_t buf;
+    uint32_t len;
+}MData_TTY_Read;
+
+typedef struct{
+    uint32_t nr_tty;
+    uint32_t buf;
+    uint32_t len;
+}MData_TTY_Write;
+
+typedef struct{
+    uint32_t user_pid;
+    uint32_t len;
+}MData_TTY_Read_OK;
+
 #endif
