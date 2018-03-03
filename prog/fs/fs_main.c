@@ -14,6 +14,8 @@ void init_fs();
 void mkfs();
 void load_super_block();
 INode* get_inode(uint32_t dev,int nr_inode);
+void do_fork_fd(Message* msg);
+void do_fs_exit(Message* msg);
 
 void fs_main(){
     init_fs();
@@ -86,6 +88,20 @@ void fs_main(){
                 forward_len = msg.mdata_tty_read_ok.len;
                 msg.mdata_response.len = forward_len;
                 sys_ipc_send(forward_pid, &msg);
+                break;
+            case MSG_FS_FORK_FD:
+                debug_log("get MSG_FS_FORK_FD message-----------");
+                do_fork_fd(&msg);
+                msg.type = MSG_RESPONSE;
+                sys_ipc_send(msg.src_pid, &msg);
+                debug_log("MSG_FS_FORK_FD message OK-----------");
+                break;
+            case MSG_FS_EXIT: // clean fd and inode for the process who want to exit
+                debug_log("get MSG_FS_EXIT message-----------");
+                do_fs_exit(&msg);
+                msg.type = MSG_RESPONSE;
+                sys_ipc_send(msg.src_pid, &msg);
+                debug_log("MSG_FS_FORK_EXIT message OK-----------");
                 break;
             default:
                 break;
@@ -303,15 +319,15 @@ INode* get_inode(uint32_t dev, int nr_inode){
 
     // search inode from inode table in memory
     while(inode_ptr < &(inode_table[NR_INODE])){
-        if((inode_ptr->process_counter) && (inode_ptr->dev_no == dev) && (inode_ptr->nr_inode == nr_inode)){
-            inode_ptr->process_counter++;
-            return inode_ptr;
+        if(inode_ptr->process_counter){
+            if((inode_ptr->dev_no == dev) && (inode_ptr->nr_inode == nr_inode)){
+                inode_ptr->process_counter++;
+                return inode_ptr;
+            }
         }
-        else if(inode_ptr->dev_no == INODE_INVALID){
+        else{
             inode_ptr_for_load = inode_ptr;
-            break;
         }
-        
         inode_ptr++;
     }
     if(!inode_ptr_for_load){
@@ -353,5 +369,33 @@ INode* get_inode(uint32_t dev, int nr_inode){
 }
 
 INode* put_inode(INode* inode_ptr){
-    inode_ptr->process_counter--;
+    if(inode_ptr->process_counter > 0){
+        inode_ptr->process_counter--;
+    }
+    else{
+        error_log("put inode error, close a file whose process couter == 0");
+    }
+}
+
+void do_fork_fd(Message* msg){
+    PCB* pcb = &pcb_table[msg->mdata_fs_fork_fd.pid];
+    for(int i = 0; i < FILP_TABLE_SIZE; i++){
+        if(pcb->filp_table[i]){
+            pcb->filp_table[i]->process_counter++;
+            pcb->filp_table[i]->fd_inode->process_counter++;
+        }
+    }
+}
+
+void do_fs_exit(Message* msg){
+    PCB* pcb = &pcb_table[msg->mdata_fs_exit.pid];
+    for(int i = 0; i < FILP_TABLE_SIZE; i++){
+        if(pcb->filp_table[i]){
+            pcb->filp_table[i]->fd_inode->process_counter--;
+            pcb->filp_table[i]->process_counter--;
+            if(pcb->filp_table[i]->process_counter == 0)
+                pcb->filp_table[i]->fd_inode = 0;
+            pcb->filp_table[i] = 0;
+        }
+    }
 }

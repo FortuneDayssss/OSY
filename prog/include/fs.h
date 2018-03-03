@@ -67,6 +67,7 @@ typedef struct{
 typedef struct {
     uint32_t    fd_mode;
     uint32_t    fd_pos;
+    uint32_t    process_counter;
     INode*      fd_inode;
 }File_Descriptor;
 #define NR_FILE_DESCRIPTOR  64

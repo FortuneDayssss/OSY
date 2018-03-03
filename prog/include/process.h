@@ -19,8 +19,10 @@
 #define PROCESS_WAITING         7       //wait for signal
 
 #define IPC_FLAG_NONE           0x00    //unblock
-#define IPC_FLAG_SENDING        0x01    //block because sending msg, 0001b
-#define IPC_FLAG_RECEIVEING     0x02    //block because recving msg, 0010b
+#define IPC_FLAG_SENDING        0x01    //block because sending msg,                0001b
+#define IPC_FLAG_RECEIVEING     0x02    //block because recving msg,                0010b
+#define IPC_FLAG_WAITING        0x04    //block because waiting child exit,         0100b
+#define IPC_FLAG_HANGING        0x08    //block because waiting parent clean up,    1000b
 
 #define PID_ANY                 0xFFFFFFFF
 #define PID_INT                 0xFFFFFFFE
@@ -29,6 +31,7 @@
 #define PID_HD                  1
 #define PID_FS                  2
 #define PID_MM                  3
+#define PID_INIT                4
 
 #define FILP_TABLE_SIZE         64
 
@@ -54,7 +57,8 @@ typedef struct PCB_struct{
     struct PCB_struct*  message_queue;
     struct PCB_struct*  next_sender;
 
-    uint32_t  parent;
+    uint32_t            parent;
+    uint32_t            exit_status;
 
     File_Descriptor*    filp_table[FILP_TABLE_SIZE];
 }PCB;

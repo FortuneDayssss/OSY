@@ -89,13 +89,29 @@ void fork_test(){
         // Message msg;
         // msg.type = MSG_FS_OPEN;
         // ipc_send(PID_MM, &msg);
-        while(1){
+        for(int i = 0; i < 10; i++){
             debug_log("child");
             printString("test data: ", -1);printInt32(test_data);upRollScreen();
             sleep(200);
         }
+        if(!fork()){
+            while(1){
+                debug_log("CHILD2222222~~");
+                sleep(200);
+            }
+        }
+        else{
+            while(1){
+                debug_log("CHILD111111~~");
+                sleep(200);
+            }
+        }
+        // exit(-10);
     }
     else{
+        int exit_status = 0;
+        // wait(&exit_status);
+        printString("got exit status: ", -1);printInt32(exit_status);upRollScreen();
         while(1){
             debug_log("parent");
             printString("test data: ", -1);printInt32(test_data);upRollScreen();

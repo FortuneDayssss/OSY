@@ -9,6 +9,10 @@
 
 uint32_t do_fork(Message* msg);
 
+uint32_t do_exit(Message* msg);
+
+uint32_t do_wait(Message* msg);
+
 uint32_t alloc_mem_for_proc(uint32_t pid, uint32_t mem_size);
 
 void init_mm(){
@@ -48,6 +52,12 @@ void mm_main(){
                 msg.mdata_response.pid = child_pid;
                 memcpy(pcb_table[parent_pid].stack0, kernel_stack_backup, 4 * 1024);
                 sys_ipc_send(parent_pid, &msg);
+                break;
+            case MSG_MM_EXIT:
+                do_exit(&msg);
+                break;
+            case MSG_MM_WAIT:
+                do_wait(&msg);
                 break;
             default:
                 break;
@@ -109,10 +119,94 @@ uint32_t do_fork(Message* msg){
     );
 
     // fs fork ----todo----
+    Message msg_to_fs;
+    msg_to_fs.type = MSG_FS_FORK_FD;
+    msg_to_fs.mdata_fs_fork_fd.pid = child_pid;
+    sys_ipc_send(PID_FS, &msg_to_fs);
+    sys_ipc_recv(PID_FS, &msg_to_fs);
+
     __asm__("sti\n\t"::);
     return child_pid;
 }
 
 uint32_t alloc_mem_for_proc(uint32_t pid, uint32_t mem_size){
     return PROCESS_MEM_BASE + pid * PROCESS_IMAGE_MEM_DEFAULT;
+}
+
+void free_mem_for_proc(uint32_t pid){
+    return;
+}
+
+void clean_up(PCB* pcb){
+    Message msg;
+    msg.type = MSG_RESPONSE;
+    msg.mdata_response.pid = pcb - pcb_table;
+    msg.mdata_response.status = pcb->exit_status;
+    sys_ipc_send(pcb->parent, &msg);
+    pcb->state = PROCESS_EMPTY;
+    pcb->ipc_flag = IPC_FLAG_NONE;
+}
+
+uint32_t do_exit(Message* msg){
+    uint32_t status = msg->mdata_mm_exit.status;
+    uint32_t parent_pid = pcb_table[msg->src_pid].parent;
+    
+    // set exit status
+    pcb_table[msg->src_pid].exit_status = status;
+
+    // fs exit
+    Message msg_to_fs;
+    msg_to_fs.type = MSG_FS_EXIT;
+    msg_to_fs.mdata_fs_exit.pid = msg->src_pid;
+    sys_ipc_send(PID_FS, &msg_to_fs);
+    sys_ipc_recv(PID_FS, &msg_to_fs);
+
+    // free memory (dummy)
+    free_mem_for_proc(msg->src_pid);
+
+    // notify parent
+    if(pcb_table[parent_pid].ipc_flag & IPC_FLAG_WAITING){ // parent is waiting
+        pcb_table[parent_pid].ipc_flag &= (~IPC_FLAG_WAITING);
+        clean_up(&pcb_table[msg->src_pid]);
+    } 
+    else{ // parent is not waiting
+        pcb_table[msg->src_pid].ipc_flag |= IPC_FLAG_HANGING;
+    }
+
+    // if exited process have child, make INIT as their new parent
+    for(int i = 0; i < MAX_PROCESS_NUM; i++){
+        if(pcb_table[i].parent == msg->src_pid){
+            pcb_table[i].parent = PID_INIT;
+            if((pcb_table[PID_INIT].ipc_flag & IPC_FLAG_WAITING) && (pcb_table[i].ipc_flag & IPC_FLAG_HANGING)){
+                pcb_table[PID_INIT].ipc_flag &= (~IPC_FLAG_WAITING);
+                clean_up(&pcb_table[i]);
+            }
+        }
+    }
+
+    
+}
+
+uint32_t do_wait(Message* msg){
+    uint32_t parent_pid = msg->src_pid;
+    uint32_t children_counter = 0;
+    for(int i = 0; i < MAX_PROCESS_NUM; i++){
+        if(pcb_table[i].parent == parent_pid){
+            children_counter++;
+            if(pcb_table[i].ipc_flag & IPC_FLAG_HANGING){ // have child and child was exited, clean up
+                clean_up(&pcb_table[i]);
+                return 0;
+            }
+        }
+    }
+
+    if(children_counter){ // have child and child is running, set waiting flag
+        pcb_table[parent_pid].ipc_flag |= IPC_FLAG_WAITING;
+    }
+    else{ // do not have any child, return pid = -1
+        Message msg_response;
+        msg_response.type = MSG_RESPONSE;
+        msg_response.mdata_response.pid = -1;
+        sys_ipc_send(parent_pid, &msg_response);
+    }
 }

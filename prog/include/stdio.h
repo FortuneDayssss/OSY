@@ -16,6 +16,10 @@ int close(int fd);
 
 int fork();
 
+void exit(int status);
+
+int wait(int* status);
+
 // todo: close, read, write, unlink, getpid ...
 
 #endif

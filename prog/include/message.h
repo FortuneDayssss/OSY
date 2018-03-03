@@ -49,6 +49,14 @@ typedef struct{
 }MData_FS_Write;
 
 typedef struct{
+    uint32_t pid;
+}MData_FS_Fork_FD;
+
+typedef struct{
+    uint32_t pid;
+}MData_FS_Exit;
+
+typedef struct{
     uint32_t nr_tty;
     uint32_t user_pid;
     uint32_t buf;
@@ -75,11 +83,11 @@ typedef struct{
 }MData_MM_Fork_Child_OK;
 
 typedef struct{
-    uint32_t start_addr;
-}MData_PM_Create_Process;
+    uint32_t status;
+}MData_MM_Exit;
 
 typedef struct{
     uint32_t dummy;
-}MData_PM_Exit;
+}MData_MM_Wait;
 
 #endif

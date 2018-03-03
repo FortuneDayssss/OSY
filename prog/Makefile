@@ -31,6 +31,8 @@ OBJS		= kernel/kernel.o \
 				lib/write.o \
 				lib/close.o \
 				lib/fork.o \
+				lib/wait.o \
+				lib/exit.o \
 				fs/fs_main.o \
 				fs/open.o \
 				fs/path.o \
@@ -119,6 +121,12 @@ lib/close.o: lib/close.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 lib/fork.o: lib/fork.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+lib/wait.o: lib/wait.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+lib/exit.o: lib/exit.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 fs/fs_main.o: fs/fs_main.c

@@ -82,6 +82,7 @@ int do_open(Message* msg){
         fd_ptr->fd_inode = inode_ptr;
         fd_ptr->fd_mode = flags;
         fd_ptr->fd_pos = 0;
+        fd_ptr->process_counter = 1;
 
         if((inode_ptr->access_mode & ACCESS_MODE_TYPE_MASK) == ACCESS_MODE_CHAR_SPECIAL){// tty file
             // ...
@@ -105,7 +106,9 @@ int do_open(Message* msg){
 int do_close(Message* msg){
     int fd = msg->mdata_fs_close.fd;
     put_inode(pcb_table[msg->src_pid].filp_table[fd]->fd_inode);
-    pcb_table[msg->src_pid].filp_table[fd]->fd_inode = INODE_INVALID;
+    pcb_table[msg->src_pid].filp_table[fd]->process_counter--;
+    if(pcb_table[msg->src_pid].filp_table[fd]->process_counter == 0)
+        pcb_table[msg->src_pid].filp_table[fd]->fd_inode = 0;
     pcb_table[msg->src_pid].filp_table[fd] = 0;
     return 0;
 }
