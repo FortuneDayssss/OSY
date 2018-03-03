@@ -11,7 +11,6 @@
 #include "fs.h"
 #include "message.h"
 #include "stdio.h"
-#include "pm.h"
 #include "mm.h"
 
 void sleep(int time){
