@@ -103,7 +103,7 @@ void hd_read(Message* msg){
     	wait_for_hd_busy();
         port_read_16(REG_DATA, hdbuf, SECTOR_SIZE);
         
-        memcpy(buf_ptr, hdbuf, copy_len);
+        memcpy((void*)get_process_pyh_mem(msg->src_pid, (uint32_t)buf_ptr), hdbuf, copy_len);
 
         buf_ptr += copy_len;
         remain_len -= copy_len;
@@ -137,7 +137,7 @@ void hd_write(Message* msg){
     uint8_t hdbuf[SECTOR_SIZE * 2];
     do{
         uint32_t copy_len = remain_len < SECTOR_SIZE ? remain_len : SECTOR_SIZE;
-        memcpy(hdbuf, buf_ptr, copy_len);
+        memcpy(hdbuf, (void*)get_process_pyh_mem(msg->src_pid, (uint32_t)buf_ptr), copy_len);
         wait_for_hd_busy();
         port_write_16(REG_DATA, hdbuf, SECTOR_SIZE);
         sys_ipc_recv(PID_INT, 0);

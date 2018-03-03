@@ -30,10 +30,12 @@ OBJS		= kernel/kernel.o \
 				lib/read.o \
 				lib/write.o \
 				lib/close.o \
+				lib/fork.o \
 				fs/fs_main.o \
 				fs/open.o \
 				fs/path.o \
-				fs/read_write.o
+				fs/read_write.o \
+				mm/mm_main.o
 
 .PHONY: everything final image clean realclean disasm all buildimg
 
@@ -116,6 +118,9 @@ lib/write.o: lib/write.c
 lib/close.o: lib/close.c
 	$(CC) $(CFLAGS) -o $@ $<
 
+lib/fork.o: lib/fork.c
+	$(CC) $(CFLAGS) -o $@ $<
+
 fs/fs_main.o: fs/fs_main.c
 	$(CC) $(CFLAGS) -o $@ $<
 
@@ -126,4 +131,7 @@ fs/path.o: fs/path.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 fs/read_write.o: fs/read_write.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+mm/mm_main.o: mm/mm_main.c
 	$(CC) $(CFLAGS) -o $@ $<

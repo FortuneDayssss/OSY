@@ -28,6 +28,7 @@
 #define PID_TTY                 0
 #define PID_HD                  1
 #define PID_FS                  2
+#define PID_MM                  3
 
 #define FILP_TABLE_SIZE         64
 
@@ -36,6 +37,8 @@ typedef struct PCB_struct{
     uint8_t             stack0[STACK_SIZE];
     uint8_t             stack3[STACK_SIZE];
     uint32_t            esp;
+    uint16_t            ldt_selector;
+    Descriptor          ldts[LDT_SIZE];
     //--------------same as asm macro----------------
     uint32_t            pid;
     char                name[32];
@@ -51,12 +54,15 @@ typedef struct PCB_struct{
     struct PCB_struct*  message_queue;
     struct PCB_struct*  next_sender;
 
+    uint32_t  parent;
+
     File_Descriptor*    filp_table[FILP_TABLE_SIZE];
 }PCB;
 
 void schedule();                    //process.c
 void switch_to_next_process();      //kernel.asm
-uint32_t create_process(void (*startAddr), uint32_t privilege, uint32_t nr_tty);//process.c
+uint32_t get_process_pyh_mem(uint32_t pid, uint32_t addr);
+uint32_t sys_create_process(void (*startAddr), uint32_t privilege, uint32_t nr_tty);//process.c
 uint32_t sys_ipc_send(uint32_t dst_pid, Message* msg_ptr);
 uint32_t sys_ipc_recv(uint32_t src_pid, Message* msg_ptr);
 uint32_t sys_ipc_int_send(uint32_t dst_pid);

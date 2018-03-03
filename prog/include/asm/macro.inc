@@ -11,6 +11,10 @@ SELECTOR_MEMD_3     equ     0x40 + 3
 SELECTOR_VIDEO      equ     0x48 + 3
 SELECTOR_TSS        equ     0x50
 
+;LDT SELECTOR (SA_TIL = 0x04, RPL = 3)
+SELECTOR_LDT_MEMC   equ     0x00 | 0x04 | 3
+SELECTOR_LDT_MEMD   equ     0x08 | 0x04 | 3
+
 ;8259A interrupt controller ports.
 INT_M_CTL           equ     0x20	; I/O port for interrupt controller         <Master>
 INT_M_CTLMASK       equ     0x21	; setting bits in this port disables ints   <Master>
@@ -25,7 +29,8 @@ PCB_OFFSET_STACK0TOP    equ     PCB_OFFSET_STACK0 + (4 * 1024) - 4
 PCB_OFFSET_STACK3       equ     PCB_OFFSET_STACK0 + 4 * 1024
 PCB_OFFSET_STACK3TOP    equ     PCB_OFFSET_STACK3 + (4 * 1024) - 4
 PCB_OFFSET_ESP          equ     PCB_OFFSET_STACK3 + 4 * 1024
-
+PCB_OFFSET_LDT_SELECTOR equ     PCB_OFFSET_ESP + 4
+PCB_PFFSET_LDT          equ     PCB_OFFSET_LDT_SELECTOR + 2
 
 ;TSS offset
 TSS_OFFSET_SP0          equ     0x04

@@ -14,6 +14,8 @@ int write(int fd, void* buf, int count);
 
 int close(int fd);
 
+int fork();
+
 // todo: close, read, write, unlink, getpid ...
 
 #endif

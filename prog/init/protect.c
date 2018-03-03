@@ -85,6 +85,14 @@ void* vir2phyaddr(void* selector_base, void* offset){
     return (void*)((uint32_t)selector_base + (uint32_t)offset);
 }
 
+uint32_t get_desc_base(Descriptor* descriptor){
+    uint32_t base = 
+        (((descriptor->base_high) << 24) & 0xFF000000) |
+        (((descriptor->base_mid) << 16) & 0x00FF0000) |
+        (descriptor->base_low & 0x0000FFFF);
+    return base;
+}
+
 void init_descriptor(Descriptor* descriptor, uint32_t base, uint32_t limit, uint16_t attribute){
     descriptor -> limit_low = limit & 0x0FFFF;
     descriptor -> base_low = base & 0x0FFFF;
@@ -192,6 +200,18 @@ void init_tss_descriptor(){
         DA_386TSS
     );
     tss.iobase = sizeof(tss);
+}
+
+void init_ldt(){
+    for(uint32_t i = 0; i < MAX_PROCESS_NUM; i++){
+        pcb_table[i].ldt_selector = SELECTOR_LDT_FIRST + (i << 3);
+        init_descriptor(
+            &gdt[INDEX_LDT_FIRST + i], 
+            (uint32_t)(&(pcb_table[i].ldts)), 
+            LDT_SIZE * sizeof(Descriptor) - 1, 
+            DA_LDT
+        );
+    }
 }
 
 void exception_handler(int vec_no, int err_code, int eip, int cs, int eflags){

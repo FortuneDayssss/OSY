@@ -22,7 +22,7 @@ SETUP_SEC_NUM           equ     3
 KERNEL_START_HEAD       equ     0
 KERNEL_START_CYLINDER   equ     0
 KERNEL_START_SEC        equ     5
-KERNEL_SEC_NUM          equ     80
+KERNEL_SEC_NUM          equ     100
 
 
 

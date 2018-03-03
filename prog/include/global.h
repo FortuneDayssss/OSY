@@ -6,6 +6,7 @@
 #include "keyboard.h"
 #include "tty.h"
 #include "fs.h"
+#include "mm.h"
 
 #define min(a,b) ((a) < (b) ? (a) : (b))
 
@@ -43,6 +44,9 @@ extern File_Descriptor      fd_table[NR_FILE_DESCRIPTOR];
 extern INode                inode_table[NR_INODE];
 extern Super_Block          super_block_table[NR_SUPER_BLOCK];
 extern INode*               root_inode;
+
+// mm
+extern Page_Table* kernel_page_table;
 
 // device - driver map
 // same as index of dd_map (in global.c)

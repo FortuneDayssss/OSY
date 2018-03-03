@@ -5,27 +5,83 @@
 #include "process.h"
 #include "string.h"
 #include "keyboard.h"
+#include "mm.h"
 
-//memory data
-void* memdata_ptr;
-uint32_t memdata[65];
+// memory data (get from bios) fromat
+#define MEM_DATA_FROM_BIOS_TYPE_AVAILABLE 1
+typedef struct{
+    uint32_t base_low;
+    uint32_t base_high;
+    uint32_t length_low;
+    uint32_t length_high;
+    uint32_t type;
+}Mem_Data_From_Bios_Entry;
 
+typedef struct{
+    uint32_t table_size;
+    Mem_Data_From_Bios_Entry table[0];
+}Mem_Data_From_Bios;
+
+// memory data
+uint32_t* memdata_ptr;
 
 void init_kernel(){
-    //save and print memory data
+    // print memory data
     printInt32((uint32_t)memdata_ptr);
     upRollScreen();
-    memcpy(&memdata, memdata_ptr, 260);
+    Mem_Data_From_Bios* memdata = (Mem_Data_From_Bios*)memdata_ptr;
     printString("memory data:\n", -1);
     printString("table size:\n", -1);
-    printInt32(memdata[0]);
-    printString("\nbaseLow    baseHigh   lengthLow  lengthHigh type\n", -1);
-    for(int i = 1; i < memdata[0] * 5 + 1; i++){
-        printInt32(memdata[i]);
-        printString("   ", -1);
-        if((i) % 5 == 0)
-            upRollScreen();
+    printInt32(memdata->table_size);
+    printString("\nbaseHigh   baseLow    lengthHigh lengthLow  type       available\n", -1);
+    for(int i = 0; i < memdata->table_size; i++){
+        printInt32(memdata->table[i].base_high);printString("   ", -1);
+        printInt32(memdata->table[i].base_low);printString("   ", -1);
+        printInt32(memdata->table[i].length_high);printString("   ", -1);
+        printInt32(memdata->table[i].length_low);printString("   ", -1);
+        printInt32(memdata->table[i].type);printString("   ", -1);
+        if(memdata->table[i].type == MEM_DATA_FROM_BIOS_TYPE_AVAILABLE){
+            printString("true", -1);
+        }
+        printString("\n", -1);
     }
+
+    // init page table
+    for(uint32_t i = 0; i < memdata->table_size; i++){
+        if(memdata->table[i].type == MEM_DATA_FROM_BIOS_TYPE_AVAILABLE){
+            uint32_t base = memdata->table[i].base_low;
+            uint32_t len = memdata->table[i].length_low;
+            uint32_t* pte = (&kernel_page_table->pte[base >> 12]);
+            for(int i = 0; i < len && (pte <= &(kernel_page_table->pte[1024 * 1024])); i+=0x1000){ // step = page_size = 4k = 2^12                
+                *(pte) &= (~PTE_OSY_TYPE_MASK);
+                *(pte) |= PTE_OSY_TYPE_AVAILABLE;
+                pte++;
+            }
+        }
+    }
+
+    // init page dir table
+    uint32_t have_least_one_page;
+    for(uint32_t i = 0; i < 1024; i++){
+        uint32_t* pde = &(kernel_page_table->pde[i]);
+        uint32_t* pte_table = (uint32_t*)((*pde) & PDE_BASE_ADDR_MASK);
+        have_least_one_page = 0;
+        for(uint32_t j = 0; j < 1024; j++){
+            uint32_t pte = pte_table[j];
+            uint32_t line_addr = ((i << 22) & 0xFFC00000) | ((j << 12) & 0x03FF000);
+            uint32_t phy_addr = pte & PTE_BASE_ADDR_MASK;
+            
+            if((pte & PTE_OSY_TYPE_MASK) == PTE_OSY_TYPE_AVAILABLE){
+                have_least_one_page = 1;
+            }
+        }
+
+        if(have_least_one_page){
+            *(pde) &= (~PDE_OSY_TYPE_MASK);
+            *(pde) |= PDE_OSY_TYPE_AVAILABLE;            
+        }
+    }
+    printString("page table init ok\n", -1);
 
     //move gdt
     memcpy(
@@ -49,6 +105,7 @@ void init_kernel(){
     init_keyboard();
     init_hd();
     init_tss_descriptor();
+    init_ldt();
 
     //gmem state (for debug)
     uint16_t temp;

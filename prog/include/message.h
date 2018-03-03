@@ -1,6 +1,8 @@
 #ifndef _MESSAGE_H__
 #define _MESSAGE_H__
 
+#include "type.h"
+
 #define RESPONSE_SUCCESS 1
 #define RESPONSE_FAIL 0
 typedef struct{
@@ -8,6 +10,7 @@ typedef struct{
     union{
         uint32_t fd;
         uint32_t len;
+        uint32_t pid;
     };
 }MData_Response;
 
@@ -62,5 +65,21 @@ typedef struct{
     uint32_t user_pid;
     uint32_t len;
 }MData_TTY_Read_OK;
+
+typedef struct{
+    uint32_t dummy;
+}MData_MM_Fork;
+
+typedef struct{
+    uint32_t dummy;
+}MData_MM_Fork_Child_OK;
+
+typedef struct{
+    uint32_t start_addr;
+}MData_PM_Create_Process;
+
+typedef struct{
+    uint32_t dummy;
+}MData_PM_Exit;
 
 #endif

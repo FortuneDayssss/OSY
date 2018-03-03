@@ -1,6 +1,8 @@
 #include "process.h"
 #include "global.h"
 #include "string.h"
+#include "protect.h"
+#include "print.h"
 
 void ipc_block(uint32_t pid, uint32_t ipc_flags){//just can use in kernel privilege
     __asm__("cli\n\t" ::);
@@ -11,6 +13,10 @@ void ipc_block(uint32_t pid, uint32_t ipc_flags){//just can use in kernel privil
         "pushl  %%cs\n\t"
         "pushl  $2f\n\t"
         "pusha\n\t"
+        "pushl  %%ds\n\t"
+        "pushl  %%es\n\t"
+        "pushl  %%fs\n\t"
+        "pushl  %%gs\n\t"
         "call   %1\n\t"         //schedule();
         "subl   $4, %%esp\n\t"  //switch_to_next_process做了平衡clock_handler的栈平衡, 设置32位空位模拟clock_handler
         "jmp    %0\n\t"         //switch_to_next_process
@@ -19,7 +25,7 @@ void ipc_block(uint32_t pid, uint32_t ipc_flags){//just can use in kernel privil
         :
         :"m"(switch_to_next_process), "m"(schedule)
     );
-
+    
 }
 
 void ipc_unblock(uint32_t pid, uint32_t ipc_flags){
@@ -52,7 +58,7 @@ void schedule(){
     // upRollScreen();
 }
 
-uint32_t create_process(void (*startAddr), uint32_t privilege, uint32_t nr_tty){
+uint32_t sys_create_process(void (*startAddr), uint32_t privilege, uint32_t nr_tty){
     int pid = -1;
     for(int i = 0; i < MAX_PROCESS_NUM; i++){
         if(pcb_table[i].state == PROCESS_EMPTY){
@@ -67,13 +73,13 @@ uint32_t create_process(void (*startAddr), uint32_t privilege, uint32_t nr_tty){
         uint32_t* stackPointer = (uint32_t*)(&pcb->stack0[STACK_SIZE - 4]);//stack0 top
         switch(privilege){
             case  PRIVILEGE_USER:
-                *stackPointer = SELECTOR_MEMD_3;
+                *stackPointer = INDEX_LDT_MEMD << 3 | SA_TIL | SA_RPL_USER; //ss
                 stackPointer--;
                 *stackPointer = (uint32_t)(&pcb->stack3[STACK_SIZE - 4]); //stack3 top
                 stackPointer--;
                 *stackPointer = 0x1202; //IF = 1, IOPL = 1
                 stackPointer--;
-                *stackPointer = SELECTOR_MEMC_3;
+                *stackPointer = INDEX_LDT_MEMC << 3 | SA_TIL | SA_RPL_USER;
                 stackPointer--;
                 *stackPointer = (uint32_t)startAddr;
                 stackPointer--;
@@ -92,16 +98,24 @@ uint32_t create_process(void (*startAddr), uint32_t privilege, uint32_t nr_tty){
                 *stackPointer = 0; //esi
                 stackPointer--;
                 *stackPointer = 0; //edi
+                stackPointer--;
+                *stackPointer = INDEX_LDT_MEMD << 3 | SA_TIL | SA_RPL_USER; //ds
+                stackPointer--;
+                *stackPointer = INDEX_LDT_MEMD << 3 | SA_TIL | SA_RPL_USER; //es
+                stackPointer--;
+                *stackPointer = INDEX_LDT_MEMD << 3 | SA_TIL | SA_RPL_USER; //fs
+                stackPointer--;
+                *stackPointer = SELECTOR_VIDEO; //gs
                 pcb->esp = (uint32_t)stackPointer;
                 break;
             case PRIVILEGE_KERNEL:
-                *stackPointer = SELECTOR_MEMD_0;
+                *stackPointer = INDEX_LDT_MEMD << 3 | SA_TIL | SA_RPL_KERNEL; //ss
                 stackPointer--;
                 *stackPointer = (uint32_t)(&pcb->stack0[STACK_SIZE - 4]); //stack3 top
                 stackPointer--;
                 *stackPointer = 0x1202; //IF = 1, IOPL = 1
                 stackPointer--;
-                *stackPointer = SELECTOR_MEMC_0;
+                *stackPointer = INDEX_LDT_MEMC << 3 | SA_TIL | SA_RPL_KERNEL;
                 stackPointer--;
                 *stackPointer = (uint32_t)startAddr;
                 stackPointer--;
@@ -120,11 +134,33 @@ uint32_t create_process(void (*startAddr), uint32_t privilege, uint32_t nr_tty){
                 *stackPointer = 0; //esi
                 stackPointer--;
                 *stackPointer = 0; //edi
+                stackPointer--;
+                *stackPointer = INDEX_LDT_MEMD << 3 | SA_TIL | SA_RPL_KERNEL; //ds
+                stackPointer--;
+                *stackPointer = INDEX_LDT_MEMD << 3 | SA_TIL | SA_RPL_KERNEL; //es
+                stackPointer--;
+                *stackPointer = INDEX_LDT_MEMD << 3 | SA_TIL | SA_RPL_KERNEL; //fs
+                stackPointer--;
+                *stackPointer = SELECTOR_VIDEO; //gs
                 pcb->esp = (uint32_t)stackPointer;
                 break;
             default:
                 return -1;
                 break;
+        }
+        
+        pcb->ldts[INDEX_LDT_MEMC] = gdt[INDEX_MEMC_0];
+        pcb->ldts[INDEX_LDT_MEMD] = gdt[INDEX_MEMD_0];
+        if(privilege == PRIVILEGE_USER){
+            pcb->ldts[INDEX_LDT_MEMC].attr1 = DA_C | PRIVILEGE_USER << 5;
+            pcb->ldts[INDEX_LDT_MEMD].attr1 = DA_DRW | PRIVILEGE_USER << 5;
+        }
+        else if(privilege == PRIVILEGE_KERNEL){
+            pcb->ldts[INDEX_LDT_MEMC].attr1 = DA_C | PRIVILEGE_KERNEL << 5;
+            pcb->ldts[INDEX_LDT_MEMD].attr1 = DA_DRW | PRIVILEGE_KERNEL << 5;
+        }
+        else{
+            return -1;
         }
         pcb->state = PROCESS_READY;
         pcb->tick = 20;
@@ -143,18 +179,28 @@ uint32_t create_process(void (*startAddr), uint32_t privilege, uint32_t nr_tty){
     return pid;
 }
 
+uint32_t sys_kill_process(uint32_t pid){
+    pcb_table[pid].state = PROCESS_EMPTY;
+}
+
 uint32_t sys_ipc_send(uint32_t dst_pid, Message* msg_ptr){
     PCB* sender_pcb = current_process;
     uint32_t sender_pid = current_process - pcb_table;
     PCB* receiver_pcb = pcb_table + dst_pid;
-    msg_ptr->src_pid = sender_pid;
+    ((Message*)get_process_pyh_mem(sender_pid, (uint32_t)msg_ptr))->src_pid = sender_pid;
+
+    // printString("pid: ", -1);printInt32(sender_pid);printString(" send to pid: ", -1);printInt32(dst_pid);upRollScreen();
 
     // receiver is wait for current process
     if(
         (receiver_pcb->ipc_flag & IPC_FLAG_RECEIVEING) && 
         ((receiver_pcb->pid_recv_from == sender_pid) || (receiver_pcb->pid_recv_from == PID_ANY))
     ){
-        memcpy(receiver_pcb->message_ptr, msg_ptr, sizeof(Message));
+        memcpy(
+            (void*)get_process_pyh_mem(dst_pid, (uint32_t)receiver_pcb->message_ptr),
+            (void*)get_process_pyh_mem(sender_pid, (uint32_t)msg_ptr),
+            sizeof(Message)
+        );
         ipc_unblock(dst_pid, IPC_FLAG_RECEIVEING);
     }
     // receiver is not wait for current process
@@ -191,8 +237,8 @@ uint32_t sys_ipc_recv(uint32_t src_pid, Message* msg_ptr){
     if(src_pid == PID_ANY || src_pid == PID_INT){
         // have interrupt message
         if(receiver_pcb->has_int_message){
-            msg_ptr->src_pid = PID_INT;
-            msg_ptr->type = MSG_INT;
+            ((Message*)get_process_pyh_mem(receiver_pid, (uint32_t)msg_ptr))->src_pid = PID_INT;
+            ((Message*)get_process_pyh_mem(receiver_pid, (uint32_t)msg_ptr))->type = MSG_INT;
             receiver_pcb->has_int_message = 0;
             get_msg_ok = 1;
         }
@@ -200,7 +246,11 @@ uint32_t sys_ipc_recv(uint32_t src_pid, Message* msg_ptr){
         else if(src_pid == PID_ANY && receiver_pcb->message_queue){
             sender_pcb = receiver_pcb->message_queue;
             receiver_pcb->message_queue = sender_pcb->next_sender;
-            memcpy(msg_ptr, sender_pcb->message_ptr, sizeof(Message));
+            memcpy(
+                (void*)get_process_pyh_mem(receiver_pid, (uint32_t)msg_ptr),
+                (void*)get_process_pyh_mem(src_pid, (uint32_t)sender_pcb->message_ptr),
+                sizeof(Message)
+            );
             ipc_unblock(sender_pcb - pcb_table, IPC_FLAG_SENDING);
             get_msg_ok = 1;
         }
@@ -217,7 +267,11 @@ uint32_t sys_ipc_recv(uint32_t src_pid, Message* msg_ptr){
             previous_sender->next_sender = sender_pcb->next_sender;
         }
         sender_pcb->next_sender = 0;
-        memcpy(msg_ptr, sender_pcb->message_ptr, sizeof(Message));
+        memcpy(
+            (void*)get_process_pyh_mem(receiver_pid, (uint32_t)msg_ptr),
+            (void*)get_process_pyh_mem(src_pid, (uint32_t)sender_pcb->message_ptr),
+            sizeof(Message)
+        );
         ipc_unblock(sender_pcb - pcb_table, IPC_FLAG_SENDING);
         get_msg_ok = 1;
     }
@@ -243,4 +297,10 @@ uint32_t sys_ipc_int_send(uint32_t dst_pid){
     else{
         receiver_pcb->has_int_message = 1;
     }
+}
+
+uint32_t get_process_pyh_mem(uint32_t pid, uint32_t addr){
+    Descriptor* ldt = &(pcb_table[pid].ldts[INDEX_LDT_MEMD]);
+    uint32_t base = get_desc_base(ldt);
+    return base + addr;
 }

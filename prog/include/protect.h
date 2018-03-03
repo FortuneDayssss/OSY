@@ -79,7 +79,11 @@ typedef struct{
 #define	SELECTOR_MEMD_3		(0x40 + 3)
 #define	SELECTOR_VIDEO		(0x48 + 3)
 #define	SELECTOR_TSS		0x50
-//#define SELECTOR_LDT_FIRST	0x58
+#define SELECTOR_LDT_FIRST	0x58
+
+//LDT index
+#define INDEX_LDT_MEMC	0
+#define INDEX_LDT_MEMD	1
 
 /* 描述符类型值说明 */
 #define	DA_32			0x4000	/* 32 位段				*/
@@ -111,6 +115,8 @@ typedef struct{
 #define	SA_RPL1		1
 #define	SA_RPL2		2
 #define	SA_RPL3		3
+#define SA_RPL_KERNEL	SA_RPL0
+#define SA_RPL_USER		SA_RPL3
 
 #define	SA_TI_MASK	0xFFFB
 #define	SA_TIG		0
@@ -182,6 +188,8 @@ void port_write_16(uint16_t port, void* buf, int size);
 
 void* seg2phyaddr(uint16_t selector);
 void* vir2phyaddr(void* selector_base, void* offset);
+uint32_t get_desc_base(Descriptor* descriptor);
+
 void init_descriptor(Descriptor* descriptor, uint32_t base, uint32_t limit, uint16_t attribute);
 void init_idt_descriptor(unsigned char _vector, 
                         uint8_t type, 
@@ -192,6 +200,7 @@ void set_irq_handler(int vec_no, irq_handler handler);
 void init_8259A();
 void init_interrupt();
 void init_tss_descriptor();
+void init_ldt();
 void init_clock();
 void init_keyboard();
 void init_hd();

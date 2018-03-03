@@ -11,6 +11,8 @@
 #include "fs.h"
 #include "message.h"
 #include "stdio.h"
+#include "pm.h"
+#include "mm.h"
 
 void sleep(int time){
     for(int i = 0; i < time; i++)
@@ -77,6 +79,39 @@ void p3test(){
     while(1){}
 }
 
+int fork();
+void fork_test(){
+    int test_data = 1;
+    sleep(2000);
+    debug_log("aaaaaaaaaaaaa");
+    if(!fork()){
+        debug_log("child start");
+        test_data = 2;
+        // Message msg;
+        // msg.type = MSG_FS_OPEN;
+        // ipc_send(PID_MM, &msg);
+        while(1){
+            debug_log("child");
+            printString("test data: ", -1);printInt32(test_data);upRollScreen();
+            sleep(200);
+        }
+    }
+    else{
+        while(1){
+            debug_log("parent");
+            printString("test data: ", -1);printInt32(test_data);upRollScreen();
+            sleep(200);
+        }
+    }
+
+    while(1){}
+}
+
+void ASM_DEBUG_OUTPUT(){
+    debug_log("ASM: DEBUG");
+}
+
+
 int init_dummy_process(PCB* pcb){
     pcb->state = PROCESS_EMPTY;
 }
@@ -88,11 +123,14 @@ int main(){
     for(int i = 0; i < MAX_PROCESS_NUM; i++){
         init_dummy_process(&pcb_table[i]);
     }
-    create_process(tty_main, PRIVILEGE_KERNEL, 0);
-    create_process(hd_main, PRIVILEGE_KERNEL, 0);
-    create_process(fs_main, PRIVILEGE_KERNEL, 0);
-    // create_process(p1test, PRIVILEGE_USER, 0);
-    create_process(p3test, PRIVILEGE_USER, 0);
+
+    sys_create_process(tty_main, PRIVILEGE_KERNEL, 0);
+    sys_create_process(hd_main, PRIVILEGE_KERNEL, 0);
+    sys_create_process(fs_main, PRIVILEGE_KERNEL, 0);
+    sys_create_process(mm_main, PRIVILEGE_KERNEL, 0);
+    // sys_create_process(p1test, PRIVILEGE_USER, 0);
+    // sys_create_process(p3test, PRIVILEGE_USER, 0);
+    sys_create_process(fork_test, PRIVILEGE_USER, 0);
     
     current_process = pcb_table;
     

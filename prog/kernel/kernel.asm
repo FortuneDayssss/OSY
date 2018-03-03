@@ -14,6 +14,7 @@ extern get_next_process
 extern current_process
 extern next_process
 extern tss
+extern ASM_DEBUG_OUTPUT
 
 global _start
 global switch_to_user_mode
@@ -148,6 +149,10 @@ exception:
 ;------hardware interrupt-------------------------------------------------------
 %macro	hwint_master	1
 	pushad
+	push	ds
+	push	es
+	push	fs
+	push	gs
 	in		al,		INT_M_CTLMASK
 	or		al,		(1 << %1)
 	out		INT_M_CTLMASK,	al
@@ -165,12 +170,11 @@ exception:
 	in		al,		INT_M_CTLMASK
 	and		al,		(~(1 << %1))&(011111111b)
 	out		INT_M_CTLMASK,	al
-	mov		ax,		SELECTOR_MEMD_3
-	mov		ds,		ax
-	mov		es,		ax
-	mov		fs,		ax
-	mov		ax,		SELECTOR_VIDEO
-	mov		gs,		ax
+	pop		gs
+	pop		fs
+	pop		es
+	pop		ds
+
 	popad
 	iretd
 %endmacro
@@ -211,6 +215,10 @@ hwint07:		; Interrupt routine for irq 7 (printer)
 ; ---------------------------------
 %macro	hwint_slave	1
 	pushad
+	push	ds
+	push	es
+	push	fs
+	push	gs
 	in		al,		INT_S_CTLMASK
 	or		al,		(1 << (%1 - 8))
 	out		INT_S_CTLMASK,	al
@@ -229,12 +237,11 @@ hwint07:		; Interrupt routine for irq 7 (printer)
 	in		al,		INT_S_CTLMASK
 	and		al,		(~(1 << (%1 - 8)))&(011111111b)
 	out		INT_S_CTLMASK,	al
-	mov		ax,		SELECTOR_MEMD_3
-	mov		ds,		ax
-	mov		es,		ax
-	mov		fs,		ax
-	mov		ax,		SELECTOR_VIDEO
-	mov		gs,		ax
+	pop		gs
+	pop		fs
+	pop		es
+	pop		ds
+
 	popad
 	iretd
 %endmacro
@@ -280,6 +287,10 @@ system_call:
 	push	ebp
 	push	esi
 	push	edi
+	push	ds
+	push	es
+	push	fs
+	push	gs
 	mov		dx,		ss
 	mov		ds,		dx
 	mov		es,		dx
@@ -292,12 +303,11 @@ system_call:
 	add		esp,	8
 
 	cli
-	mov		bx,		SELECTOR_MEMD_3
-	mov		ds,		bx
-	mov		es,		bx
-	mov		fs,		bx
-	mov		bx,		SELECTOR_VIDEO
-	mov		gs,		bx
+
+	pop		gs
+	pop		fs
+	pop		es
+	pop		ds
 	pop		edi
 	pop		esi
 	pop		ebp
@@ -310,28 +320,28 @@ system_call:
 
 switch_to_user_mode:
 	mov		esp,	[current_process]
+	lldt	[esp + PCB_OFFSET_LDT_SELECTOR]
 	lea		eax,	[esp + PCB_OFFSET_STACK0TOP]
 	mov		[tss + TSS_OFFSET_SP0],	eax
 	lea		eax,	[esp + PCB_OFFSET_ESP]
 	mov		esp,	[eax]
-	mov		ax,		SELECTOR_MEMD_3
-	mov		ds,		ax
-	mov		es,		ax
-	mov		fs,		ax
-	mov		ax,		SELECTOR_VIDEO
-	mov		gs,		ax
+
 	xor		edi,	edi
 	xor		esi,	esi
 	xor		ebx,	ebx
 	xor		edx,	edx
 	xor		ecx,	ecx
 	xor		eax,	eax
+	pop		gs
+	pop		fs
+	pop		es
+	pop		ds
 	popad
 	sti
 	iretd
 
 switch_to_next_process:
-	add		esp,	4								;throw return address of 'clock_handler'
+	add		esp,	4								;throw return address of 'clock_handler'	
 	mov		ebx,	[current_process]
 	mov	dword	[ebx + PCB_OFFSET_ESP],	esp
 	mov		eax,	[current_process]
@@ -345,6 +355,7 @@ switch_to_next_process:
 
 	mov		[current_process],	ebx
 	mov		esp,	[current_process]
+	lldt	[esp + PCB_OFFSET_LDT_SELECTOR]
 	lea		eax,	[esp + PCB_OFFSET_STACK0TOP]
 	mov		[tss + TSS_OFFSET_SP0],	eax
 	lea		eax,	[esp + PCB_OFFSET_ESP]
@@ -354,11 +365,9 @@ STACK_SWITCH_OK:
 	in		al,		INT_M_CTLMASK
 	and		al,		(~(1 << 0))&(011111111b)
 	out		INT_M_CTLMASK,	al
-	mov		ax,		SELECTOR_MEMD_3
-	mov		ds,		ax
-	mov		es,		ax
-	mov		fs,		ax
-	mov		ax,		SELECTOR_VIDEO
-	mov		gs,		ax
+	pop		gs
+	pop		fs
+	pop		es
+	pop		ds
 	popad
 	iretd

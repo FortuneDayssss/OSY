@@ -3,6 +3,7 @@
 #include "process.h"
 #include "type.h"
 #include "tty.h"
+#include "mm.h"
 
 //GDT
 uint8_t     gdt_ptr[6];//limit(2Byte)  Base(4Byte)
@@ -38,6 +39,10 @@ File_Descriptor     fd_table[NR_FILE_DESCRIPTOR];
 INode               inode_table[NR_INODE];
 Super_Block         super_block_table[NR_SUPER_BLOCK];
 INode*              root_inode;
+
+// mm
+Page_Table* kernel_page_table = (Page_Table*)(0x00200000);
+
 
 //device - driver map
 uint32_t dd_map[] = {
