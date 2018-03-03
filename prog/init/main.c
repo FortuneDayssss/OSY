@@ -131,7 +131,7 @@ int init_dummy_process(PCB* pcb){
     pcb->state = PROCESS_EMPTY;
 }
 
-extern void hd_read_write(uint32_t drive, uint32_t sector, uint32_t* buf, uint32_t len, uint32_t is_read);
+
 
 int main(){
     printString("main\n", -1);
