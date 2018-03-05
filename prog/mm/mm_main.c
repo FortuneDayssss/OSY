@@ -32,14 +32,14 @@ void mm_main(){
 
     while(1){
         sys_ipc_recv(PID_ANY, &msg);
-        printString("mm got message from ", -1);printInt32(msg.src_pid);printString("\n", -1);
-        printString("msg type: ", -1);printInt32(msg.type);printString("\n", -1);
+        // printString("mm got message from ", -1);printInt32(msg.src_pid);printString("\n", -1);
+        // printString("msg type: ", -1);printInt32(msg.type);printString("\n", -1);
         switch(msg.type){
             case MSG_MM_FORK:
                 debug_log("get fork message");
                 parent_pid = msg.src_pid;
                 child_pid = do_fork(&msg);
-                printString("child pid:", -1);printInt32(child_pid);printString("\n", -1);
+                // printString("child pid:", -1);printInt32(child_pid);printString("\n", -1);
                 if(child_pid != -1){//success, awake child process before awake parent
                     Message child_ok_msg;
                     memcpy(kernel_stack_backup, pcb_table[parent_pid].stack0, 4 * 1024);
@@ -80,8 +80,8 @@ uint32_t do_fork(Message* msg){
         return -1;
     }
 
-    printString("child pid:", -1);printInt32(child_pid);printString("\n", -1);
-    printString("parnet pid:", -1);printInt32(parent_pid);printString("\n", -1);
+    // printString("child pid:", -1);printInt32(child_pid);printString("\n", -1);
+    // printString("parnet pid:", -1);printInt32(parent_pid);printString("\n", -1);
 
     // duplicate pcb
     uint32_t child_ldt_selector = pcb_table[child_pid].ldt_selector;
@@ -99,9 +99,9 @@ uint32_t do_fork(Message* msg){
     uint32_t parent_size = ((parent_limit + 1) * ((parent_ldt->limit_high_attr2 & (DA_LIMIT_4K >> 8)) ? 4096 : 1));
     uint32_t child_base = alloc_mem_for_proc(child_pid, parent_size);
     // memcpy((void*)child_base, (void*)parent_base, parent_size);
-    printString("child base:", -1);printInt32(child_base);printString("\n", -1);
-    printString("parent base:", -1);printInt32((uint32_t)parent_base);printString("\n", -1);
-    printString("len:", -1);printInt32(PROCESS_IMAGE_MEM_DEFAULT);printString("\n", -1);
+    // printString("child base:", -1);printInt32(child_base);printString("\n", -1);
+    // printString("parent base:", -1);printInt32((uint32_t)parent_base);printString("\n", -1);
+    // printString("len:", -1);printInt32(PROCESS_IMAGE_MEM_DEFAULT);printString("\n", -1);
     memcpy((void*)child_base, (void*)parent_base, PROCESS_IMAGE_MEM_DEFAULT);
 
     // init ldt

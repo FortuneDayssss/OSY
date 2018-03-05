@@ -78,7 +78,7 @@ void p3test(){
     while(1){}
 }
 
-int fork();
+
 void fork_test(){
     int test_data = 1;
     sleep(2000);
@@ -126,17 +126,60 @@ void ASM_DEBUG_OUTPUT(){
     debug_log("ASM: DEBUG");
 }
 
+void shell(){
+    debug_log("SHELL START");
+    char cmd_buf[64];
+    char cmd_len;
+    while(1){
+        // debug_log("SHELL WRITE $");
+        write(STDOUT, "$ ", 2);
+        // debug_log("BEFORE SHELL READ MESSAGE SEND");
+        cmd_len = read(STDIN, cmd_buf, 50);
+        // printString("CMD LEN:", -1);printInt32(cmd_len);printString("\n", -1);
+        if(cmd_len == -1){
+            printString("TTY read fail~~", -1);
+            __asm__("hlt\n\t"::);
+            while(1){}
+        }
+        cmd_buf[cmd_len] = '\n';
+        cmd_buf[cmd_len + 1] = '\0';
+        // printString("shell out: ---\n", -1);
+        // printString(cmd_buf, -1);
+        write(STDOUT, cmd_buf, cmd_len + 1);
 
-int init_dummy_process(PCB* pcb){
-    pcb->state = PROCESS_EMPTY;
+
+    }
+
+    error_log("SHELL EXIT");
+    exit(0);
 }
 
-
+void Init(){
+    sleep(2000);
+    int fd_stdin = open("/dev_tty0", O_RDWR);
+    int fd_stdout = open("/dev_tty0", O_RDWR);
+    printString("STDIN  FD:", -1);printInt32(fd_stdin);printString("\n", -1);
+    printString("STDOUT FD:", -1);printInt32(fd_stdout);printString("\n", -1);
+    debug_log("INIT START");
+    if(!fork()){
+        debug_log("SHELL FORK SUCCESS");
+        shell();
+    }
+    else{
+        // collect zombie child process and destroy them
+        while(1){
+            int child_exit_status;
+            wait(&child_exit_status);
+        }
+    }
+}
 
 int main(){
     printString("main\n", -1);
+
+    // init process state
     for(int i = 0; i < MAX_PROCESS_NUM; i++){
-        init_dummy_process(&pcb_table[i]);
+        pcb_table[i].state = PROCESS_EMPTY;
     }
 
     sys_create_process(tty_main, PRIVILEGE_KERNEL, 0);
@@ -145,7 +188,8 @@ int main(){
     sys_create_process(mm_main, PRIVILEGE_KERNEL, 0);
     // sys_create_process(p1test, PRIVILEGE_USER, 0);
     // sys_create_process(p3test, PRIVILEGE_USER, 0);
-    sys_create_process(fork_test, PRIVILEGE_USER, 0);
+    sys_create_process(Init, PRIVILEGE_USER, 0);
+    // sys_create_process(fork_test, PRIVILEGE_USER, 0);
     
     current_process = pcb_table;
     

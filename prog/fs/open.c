@@ -19,7 +19,8 @@ int do_open(Message* msg){
         return fd;
     }
     char path_name[MAX_FILENAME_LEN];
-    memcpy(path_name, (void*)msg->mdata_fs_open.path_name, path_name_len);
+    memcpy(path_name, (void*)get_process_pyh_mem(msg->src_pid, msg->mdata_fs_open.path_name), path_name_len);
+
     path_name[path_name_len] = 0;
     int flags = msg->mdata_fs_open.flags;
 
@@ -50,7 +51,7 @@ int do_open(Message* msg){
     
     // find inode by file path
     uint32_t inode_nr = search_file(path_name);
-    printString("Search File OK, INode nr = ", -1);printInt32(inode_nr);printString("\n", -1);
+    // printString("Search File OK, INode nr = ", -1);printInt32(inode_nr);printString("\n", -1);
     INode* inode_ptr = 0;
     if(flags & O_CREATE){
         if(inode_nr != INODE_INVALID){
@@ -86,7 +87,7 @@ int do_open(Message* msg){
 
         if((inode_ptr->access_mode & ACCESS_MODE_TYPE_MASK) == ACCESS_MODE_CHAR_SPECIAL){// tty file
             // ...
-            debug_log("FILE IS TTY!!!!!!!!!!!!!");
+            // debug_log("FILE IS TTY!!!!!!!!!!!!!");
         }
         else if((inode_ptr->access_mode & ACCESS_MODE_TYPE_MASK) == ACCESS_MODE_DIRECTORY){// dir file
             //...

@@ -19,11 +19,11 @@ OBJS		= kernel/kernel.o \
 				kernel/hd.o \
 				kernel/process.o \
 				kernel/keyboard.o \
-				kernel/systemcall.o \
 				kernel/tty.o \
 				init/main.o \
 				init/init.o \
 				init/protect.o \
+				lib/systemcall.o \
 				lib/string.o \
 				lib/print.o \
 				lib/open.o \
@@ -39,9 +39,9 @@ OBJS		= kernel/kernel.o \
 				fs/read_write.o \
 				mm/mm_main.o
 
-.PHONY: everything final image clean realclean disasm all buildimg
+.PHONY: everything final image clean realclean disasm all buildimg crt
 
-.PHONY: everything final image clean realclean disasm all buildimg
+.PHONY: everything final image clean realclean disasm all buildimg crt
 
 everything: $(OSBOOT) $(OSKERNEL)
 
@@ -54,11 +54,15 @@ clean:
 
 realclean:
 	rm -f $(OBJS) $(OSBOOT) $(OSKERNEL)
+	rm -f lib/osy_runtime.a
 
 buildimg:
 	dd if=boot/bootsec.bin of=../a.img bs=512 count=1 conv=notrunc
 	dd if=boot/setup.bin of=../a.img bs=512 count=3 seek=1 conv=notrunc
 	dd if=kernel.bin of=../a.img bs=512 count=$(SYSSECNUM) seek=`expr 1 + $(SETUPSECNUM)` conv=notrunc
+
+crt:
+	ar rcs lib/osy_runtime.a lib/*.o
 
 boot/bootsec.bin: boot/bootsec.asm
 	$(ASM) $(ASMBFLAGS) -o $@ $<
@@ -87,9 +91,6 @@ kernel/process.o: kernel/process.c
 kernel/keyboard.o: kernel/keyboard.c
 	$(CC) $(CFLAGS) -o $@ $<
 
-kernel/systemcall.o: kernel/systemcall.c
-	$(CC) $(CFLAGS) -o $@ $<
-
 kernel/tty.o: kernel/tty.c
 	$(CC) $(CFLAGS) -o $@ $<
 
@@ -100,6 +101,9 @@ init/main.o: init/main.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 init/protect.o: init/protect.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+lib/systemcall.o: lib/systemcall.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 lib/string.o: lib/string.c

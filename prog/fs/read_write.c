@@ -19,6 +19,9 @@ int do_read(Message* msg){
 
     // check access mode
     if(!(src_proc->filp_table[fd]->fd_mode & O_RDWR)){
+        error_log("access mode fail");
+        msg->mdata_response.len = 0;
+        sys_ipc_send(msg->src_pid, msg);
         return -1;
     }
 
@@ -29,26 +32,30 @@ int do_read(Message* msg){
 
 
     if((inode_ptr->access_mode & ACCESS_MODE_TYPE_MASK) == ACCESS_MODE_CHAR_SPECIAL){// tty
-        debug_log("READ FROM TTY~~~~~~");
         Message msg_to_tty;
+        Message msg_response;
+        msg_response.type = MSG_RESPONSE;msg_response.mdata_response.status = 1;
         msg_to_tty.type = MSG_TTY_READ;
         msg_to_tty.mdata_tty_read.user_pid = msg->src_pid;
         msg_to_tty.mdata_tty_read.nr_tty = GET_DEV_MINOR(inode_ptr->nr_start_sector);
         msg_to_tty.mdata_tty_read.buf = msg->mdata_fs_read.buf;
         msg_to_tty.mdata_tty_read.len = msg->mdata_fs_read.len;
         sys_ipc_send(PID_TTY, &msg_to_tty);
-        sys_ipc_recv(PID_TTY, &msg_to_tty);
-        if(msg_to_tty.mdata_response.status){// hook seccess
+        // debug_log("fs tty send ok");
+        sys_ipc_recv(PID_TTY, &msg_response);
+        // debug_log("fs tty recv ok");
+        // for(int i = 0; i < 10000; i++){}
+        if(!(msg_response.type == MSG_RESPONSE && msg_response.mdata_response.status)){// hook seccess
             // hook success, block user process until key input is enough
             // so fs shouldn't response now
-            return 0;
-        }
-        else{// hook fail
-            msg->mdata_response.len = 0;
+            // debug_log("tty hooked success");
+        // }
+        // else{// hook fail
+            error_log("tty hook fail");
+            msg->mdata_response.len = -1;
             sys_ipc_send(msg->src_pid, msg);
-            return 0;
         }
-        return msg_to_tty.mdata_response.len;
+
         return 0;
     }
     else{ // copy from hd sec
@@ -94,12 +101,13 @@ int do_write(Message* msg){
     int pos = src_proc->filp_table[fd]->fd_pos;
     int pos_end = pos + len;
 
-    printString("ACCESS MODE: ", -1);printInt32(inode_ptr->access_mode & ACCESS_MODE_TYPE_MASK);printString("\n", -1);
+    // printString("ACCESS MODE: ", -1);printInt32(inode_ptr->access_mode & ACCESS_MODE_TYPE_MASK);printString("\n", -1);
     if((inode_ptr->access_mode & ACCESS_MODE_TYPE_MASK) == ACCESS_MODE_CHAR_SPECIAL){
-        debug_log("WRITE TO TTY~~~~~~");
+        // debug_log("WRITE TO TTY~~~~~~");
         Message msg_to_tty;
         msg_to_tty.type = MSG_TTY_WRITE;
         msg_to_tty.mdata_tty_write.nr_tty = GET_DEV_MINOR(inode_ptr->nr_start_sector);
+        msg_to_tty.mdata_tty_write.user_pid = msg->src_pid;
         msg_to_tty.mdata_tty_write.buf = msg->mdata_fs_write.buf;
         msg_to_tty.mdata_tty_write.len = msg->mdata_fs_write.len;
         sys_ipc_send(PID_TTY, &msg_to_tty);

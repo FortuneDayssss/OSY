@@ -58,20 +58,21 @@ void fs_main(){
     uint32_t forward_len;
     while(1){
         sys_ipc_recv(PID_ANY, &msg);
+        // printString("FS got message from ", -1);printInt32(msg.src_pid);printString("\n", -1);
         switch(msg.type){
             case MSG_FS_OPEN:
-                debug_log("get open message-----------");
+                // debug_log("get open message-----------");
                 msg.mdata_response.fd = do_open(&msg);
                 sys_ipc_send(msg.src_pid, &msg);
-                debug_log("get open message-----------");
+                // debug_log("get open message-----------");
                 break;
             case MSG_FS_CLOSE:
                 msg.mdata_response.status = do_close(&msg);
                 sys_ipc_send(msg.src_pid, &msg);
                 break;
             case MSG_FS_READ:
-                debug_log("get read message-----------");
-                msg.mdata_response.len = do_read(&msg);
+                // debug_log("get read message-----------");
+                do_read(&msg);
                 // process ipc responce in do_read function
                 // because if read from tty, os should block user process and wait for key input
                 break;
@@ -90,22 +91,23 @@ void fs_main(){
                 sys_ipc_send(forward_pid, &msg);
                 break;
             case MSG_FS_FORK_FD:
-                debug_log("get MSG_FS_FORK_FD message-----------");
+                // debug_log("get MSG_FS_FORK_FD message-----------");
                 do_fork_fd(&msg);
                 msg.type = MSG_RESPONSE;
                 sys_ipc_send(msg.src_pid, &msg);
-                debug_log("MSG_FS_FORK_FD message OK-----------");
+                // debug_log("MSG_FS_FORK_FD message OK-----------");
                 break;
             case MSG_FS_EXIT: // clean fd and inode for the process who want to exit
-                debug_log("get MSG_FS_EXIT message-----------");
+                // debug_log("get MSG_FS_EXIT message-----------");
                 do_fs_exit(&msg);
                 msg.type = MSG_RESPONSE;
                 sys_ipc_send(msg.src_pid, &msg);
-                debug_log("MSG_FS_FORK_EXIT message OK-----------");
+                // debug_log("MSG_FS_FORK_EXIT message OK-----------");
                 break;
             default:
                 break;
         }
+        memset(&msg, 0, sizeof(Message));
     }
 }
 
@@ -335,7 +337,7 @@ INode* get_inode(uint32_t dev, int nr_inode){
     }
 
     // not in memory, load inode from hard disk
-    debug_log("NOT IN MEMORY!!!!!!!");
+    // debug_log("NOT IN MEMORY!!!!!!!");
     Super_Block* sbp = get_super_block(dev);
     uint8_t buf[SECTOR_SIZE];
     uint32_t nr_block = 1 + 1 + sbp->nr_imap_sectors + sbp->nr_smap_sectors + 

@@ -3,6 +3,7 @@
 #include "string.h"
 #include "systemcall.h"
 #include "process.h"
+#include "print.h"
 
 int open(const char* path_name, int flags){
     Message msg;

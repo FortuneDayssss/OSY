@@ -5,6 +5,9 @@
 #define O_CREATE    1
 #define O_RDWR      2
 
+// standard fd number
+#define STDIN       0
+#define STDOUT      1
 
 int open(const char* path_name, int flags);
 

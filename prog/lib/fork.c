@@ -9,10 +9,10 @@
 int fork(){
     Message msg;
     msg.type = MSG_MM_FORK;
-    debug_log("before send fork msg");
+    // debug_log("before send fork msg");
     ipc_send(PID_MM, &msg);
     ipc_recv(PID_MM, &msg);
-    debug_log("after send fork msg");
+    // debug_log("after send fork msg");
     if(msg.mdata_response.pid == 0){ // awake child before awake parent
         msg.type = MSG_MM_FORK_CHILD_OK;
         ipc_send(PID_MM, &msg);

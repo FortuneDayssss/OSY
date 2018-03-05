@@ -4,6 +4,7 @@
 #include "print.h"
 #include "global.h"
 #include "keyboard.h"
+#include "string.h"
 
 //local function
 void screen_out_char(int nr_tty, char ch);
@@ -105,20 +106,23 @@ void tty_write_loop(TTY *pt){
 int tty_do_read(Message* msg){
     TTY* tty = &tty_table[msg->mdata_tty_read.nr_tty];
     if(tty->have_hooked_proc){
+        // printString("already hooked with ", -1);printInt32(tty->hooked_pid);printString("\n", -1);
         return 0;
     }
     else{
         tty->have_hooked_proc = 1;
         tty->hooked_pid = msg->mdata_tty_read.user_pid;
-        tty->proc_buf = (uint8_t*)msg->mdata_tty_read.buf;
+        // printInt32(tty->hooked_pid);printString("hooked on tty~", -1);printString("\n", -1);
+        tty->proc_buf = (uint8_t*)(get_process_pyh_mem(msg->mdata_tty_read.user_pid, msg->mdata_tty_read.buf));
         tty->proc_buf_len = msg->mdata_tty_read.len;
+        tty->copied_len = 0;
         return 1;
     }
 }
 
 int tty_do_write(Message* msg){
     TTY* tty = &tty_table[msg->mdata_tty_write.nr_tty];
-    uint8_t* buf = (uint8_t*)(msg->mdata_tty_write.buf);
+    uint8_t* buf = (uint8_t*)(get_process_pyh_mem(msg->mdata_tty_write.user_pid, msg->mdata_tty_write.buf));
     int size = msg->mdata_tty_write.len;
     int counter = 0;
     for (int i = 0; (size == -1 || i < size) && buf[i] != '\0' && tty->keyBuffer.count < TTY_BUFFER_SIZE; i++){
@@ -147,11 +151,13 @@ void tty_main(){
         sys_ipc_recv(PID_ANY, &msg);
         switch(msg.type){
             case MSG_TTY_READ:
+                // printString("TTY got read message from ", -1);printInt32(msg.src_pid);printString("\n", -1);
                 msg.type = MSG_RESPONSE;
                 msg.mdata_response.status = tty_do_read(&msg);
                 sys_ipc_send(msg.src_pid, &msg);
                 break;
             case MSG_TTY_WRITE:
+                // printString("TTY got write message from ", -1);printInt32(msg.src_pid);printString("\n", -1);
                 msg.type = MSG_RESPONSE;
                 msg.mdata_response.len = tty_do_write(&msg);
                 sys_ipc_send(msg.src_pid, &msg);
@@ -161,6 +167,7 @@ void tty_main(){
             default:
                 break;
         }
+        memset(&msg, 0, sizeof(Message));
     }
 }
 

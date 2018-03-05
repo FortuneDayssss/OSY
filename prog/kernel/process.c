@@ -5,9 +5,9 @@
 #include "print.h"
 
 void ipc_block(uint32_t pid, uint32_t ipc_flags){//just can use in kernel privilege
-    __asm__("cli\n\t" ::);
+    // __asm__("cli\n\t" ::);
     pcb_table[pid].ipc_flag |= ipc_flags;
-
+    
     __asm__(
         "pushf\n\t"
         "pushl  %%cs\n\t"
@@ -25,13 +25,13 @@ void ipc_block(uint32_t pid, uint32_t ipc_flags){//just can use in kernel privil
         :
         :"m"(switch_to_next_process), "m"(schedule)
     );
-    
+
 }
 
 void ipc_unblock(uint32_t pid, uint32_t ipc_flags){
-    __asm__("cli\n\t" ::);
+    // __asm__("cli\n\t" ::);
     pcb_table[pid].ipc_flag &= ~ipc_flags;
-    __asm__("sti\n\t" ::);
+    // __asm__("sti\n\t" ::);
 }
 
 void schedule(){
@@ -53,9 +53,11 @@ void schedule(){
         }
     }
 
-    // printString("next process:", -1);
-    // printInt32(next_process - pcb_table);
-    // upRollScreen();
+    // if(current_process != next_process){
+    //     printString("next process:", -1);
+    //     printInt32(next_process - pcb_table);
+    //     upRollScreen();
+    // }
 }
 
 uint32_t sys_create_process(void (*startAddr), uint32_t privilege, uint32_t nr_tty){
@@ -202,6 +204,7 @@ uint32_t sys_ipc_send(uint32_t dst_pid, Message* msg_ptr){
             sizeof(Message)
         );
         ipc_unblock(dst_pid, IPC_FLAG_RECEIVEING);
+        // printInt32(sender_pid);printString(" SENDER UNBLOCK PID ", -1);printInt32(dst_pid);printString("\n", -1);
     }
     // receiver is not wait for current process
     else{
@@ -248,7 +251,7 @@ uint32_t sys_ipc_recv(uint32_t src_pid, Message* msg_ptr){
             receiver_pcb->message_queue = sender_pcb->next_sender;
             memcpy(
                 (void*)get_process_pyh_mem(receiver_pid, (uint32_t)msg_ptr),
-                (void*)get_process_pyh_mem(src_pid, (uint32_t)sender_pcb->message_ptr),
+                (void*)get_process_pyh_mem(src_pid, (uint32_t)(sender_pcb->message_ptr)),
                 sizeof(Message)
             );
             ipc_unblock(sender_pcb - pcb_table, IPC_FLAG_SENDING);
@@ -280,7 +283,7 @@ uint32_t sys_ipc_recv(uint32_t src_pid, Message* msg_ptr){
     if(!get_msg_ok){
         receiver_pcb->pid_recv_from = src_pid;
         receiver_pcb->message_ptr = msg_ptr;
-        ipc_block(receiver_pcb - pcb_table, IPC_FLAG_RECEIVEING);
+        ipc_block(receiver_pid, IPC_FLAG_RECEIVEING);
     }
 }
 
@@ -290,8 +293,8 @@ uint32_t sys_ipc_int_send(uint32_t dst_pid){
         (receiver_pcb->ipc_flag & IPC_FLAG_RECEIVEING) && 
         (receiver_pcb->pid_recv_from == PID_ANY || receiver_pcb->pid_recv_from == PID_INT)){
         receiver_pcb->has_int_message = 0;
-        receiver_pcb->message_ptr->src_pid = PID_INT;
-        receiver_pcb->message_ptr->type = MSG_INT;
+        ((Message*)get_process_pyh_mem(dst_pid, (uint32_t)receiver_pcb->message_ptr))->src_pid = PID_INT;
+        ((Message*)get_process_pyh_mem(dst_pid, (uint32_t)receiver_pcb->message_ptr))->type = MSG_INT;
         ipc_unblock(dst_pid, IPC_FLAG_RECEIVEING);
     }
     else{
