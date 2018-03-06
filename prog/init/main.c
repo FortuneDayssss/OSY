@@ -127,25 +127,19 @@ void ASM_DEBUG_OUTPUT(){
 }
 
 void shell(){
-    debug_log("SHELL START");
+    printf("SHELL START\n");
     char cmd_buf[64];
     char cmd_len;
     while(1){
-        // debug_log("SHELL WRITE $");
         write(STDOUT, "$ ", 2);
-        // debug_log("BEFORE SHELL READ MESSAGE SEND");
         cmd_len = read(STDIN, cmd_buf, 50);
-        // printString("CMD LEN:", -1);printInt32(cmd_len);printString("\n", -1);
         if(cmd_len == -1){
             printString("TTY read fail~~", -1);
             __asm__("hlt\n\t"::);
             while(1){}
         }
-        cmd_buf[cmd_len] = '\n';
-        cmd_buf[cmd_len + 1] = '\0';
-        // printString("shell out: ---\n", -1);
-        // printString(cmd_buf, -1);
-        write(STDOUT, cmd_buf, cmd_len + 1);
+        cmd_buf[cmd_len] = '\0';
+        printf("%s\n", cmd_buf);
 
 
     }
@@ -158,11 +152,11 @@ void Init(){
     sleep(2000);
     int fd_stdin = open("/dev_tty0", O_RDWR);
     int fd_stdout = open("/dev_tty0", O_RDWR);
-    printString("STDIN  FD:", -1);printInt32(fd_stdin);printString("\n", -1);
-    printString("STDOUT FD:", -1);printInt32(fd_stdout);printString("\n", -1);
-    debug_log("INIT START");
+    printf("STDIN   FD: %d\n", fd_stdin);
+    printf("STDOUOT FD: %d\n", fd_stdout);
+    printf("INIT START\n");
     if(!fork()){
-        debug_log("SHELL FORK SUCCESS");
+        printf("SHELL FORK SUCCESS\n");
         shell();
     }
     else{

@@ -20,6 +20,7 @@ OBJS		= kernel/kernel.o \
 				kernel/process.o \
 				kernel/keyboard.o \
 				kernel/tty.o \
+				kernel/printk.o \
 				init/main.o \
 				init/init.o \
 				init/protect.o \
@@ -33,6 +34,8 @@ OBJS		= kernel/kernel.o \
 				lib/fork.o \
 				lib/wait.o \
 				lib/exit.o \
+				lib/printf.o \
+				lib/vsprintf.o \
 				fs/fs_main.o \
 				fs/open.o \
 				fs/path.o \
@@ -94,6 +97,9 @@ kernel/keyboard.o: kernel/keyboard.c
 kernel/tty.o: kernel/tty.c
 	$(CC) $(CFLAGS) -o $@ $<
 
+kernel/printk.o: kernel/printk.c
+	$(CC) $(CFLAGS) -o $@ $<
+
 init/init.o: init/init.c
 	$(CC) $(CFLAGS) -o $@ $<
 
@@ -131,6 +137,12 @@ lib/wait.o: lib/wait.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 lib/exit.o: lib/exit.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+lib/printf.o: lib/printf.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+lib/vsprintf.o: lib/vsprintf.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 fs/fs_main.o: fs/fs_main.c
