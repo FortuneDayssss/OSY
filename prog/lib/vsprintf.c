@@ -72,3 +72,8 @@ int vsprintf(char* buf, const char* fmt, va_list args){
     // return string length in buf
     return buf_p - buf; 
 }
+
+int sprintf(char *buf, const char *fmt, ...){
+	va_list args = (va_list)((char*)(&fmt) + 4);
+	return vsprintf(buf, fmt, args);
+}

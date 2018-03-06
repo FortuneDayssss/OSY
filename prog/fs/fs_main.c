@@ -257,36 +257,51 @@ void mkfs(){
     root_dir_entry_ptr->nr_inode = 1;
     strcpy((char*)(root_dir_entry_ptr->file_name), ".");
 
-    // todo: implement sprintf and change tty file init code to loop
+    //init tty files
     root_dir_entry_ptr++;
-    root_dir_entry_ptr->nr_inode = 2;
-    strcpy((char*)(root_dir_entry_ptr->file_name), "dev_tty0");
-    root_dir_entry_ptr++;
-    root_dir_entry_ptr->nr_inode = 3;
-    strcpy((char*)(root_dir_entry_ptr->file_name), "dev_tty1");
-    root_dir_entry_ptr++;
-    root_dir_entry_ptr->nr_inode = 4;
-    strcpy((char*)(root_dir_entry_ptr->file_name), "dev_tty2");
-    root_dir_entry_ptr++;
-    root_dir_entry_ptr->nr_inode = 5;
-    strcpy((char*)(root_dir_entry_ptr->file_name), "dev_tty3");
-    root_dir_entry_ptr++;
-    root_dir_entry_ptr->nr_inode = 6;
-    strcpy((char*)(root_dir_entry_ptr->file_name), "dev_tty4");
-    root_dir_entry_ptr++;
-    root_dir_entry_ptr->nr_inode = 7;
-    strcpy((char*)(root_dir_entry_ptr->file_name), "dev_tty5");
-    root_dir_entry_ptr++;
-    root_dir_entry_ptr->nr_inode = 8;
-    strcpy((char*)(root_dir_entry_ptr->file_name), "dev_tty6");
-    root_dir_entry_ptr++;
+    for(int i = 0; i <= 6; i++){
+        root_dir_entry_ptr->nr_inode = i + 2;
+        sprintf((char*)root_dir_entry_ptr->file_name, "dev_tty%d", i);
+        root_dir_entry_ptr++;
+    }
     write_sector(sb.nr_first_data_sector, fs_buf, SECTOR_SIZE);
     memset(fs_buf, 0, SECTOR_SIZE);
     root_dir_entry_ptr = (Dir_Entry*)fs_buf;
     root_dir_entry_ptr->nr_inode = 9;
-    strcpy((char*)(root_dir_entry_ptr->file_name), "dev_tty7");
+    sprintf((char*)root_dir_entry_ptr->file_name, "dev_tty%d", 7);
     write_sector(sb.nr_first_data_sector + 1, fs_buf, SECTOR_SIZE);
     printString("root directory init finish\n", -1);
+
+    // old code...
+    // root_dir_entry_ptr++;
+    // root_dir_entry_ptr->nr_inode = 2;
+    // strcpy((char*)(root_dir_entry_ptr->file_name), "dev_tty0");
+    // root_dir_entry_ptr++;
+    // root_dir_entry_ptr->nr_inode = 3;
+    // strcpy((char*)(root_dir_entry_ptr->file_name), "dev_tty1");
+    // root_dir_entry_ptr++;
+    // root_dir_entry_ptr->nr_inode = 4;
+    // strcpy((char*)(root_dir_entry_ptr->file_name), "dev_tty2");
+    // root_dir_entry_ptr++;
+    // root_dir_entry_ptr->nr_inode = 5;
+    // strcpy((char*)(root_dir_entry_ptr->file_name), "dev_tty3");
+    // root_dir_entry_ptr++;
+    // root_dir_entry_ptr->nr_inode = 6;
+    // strcpy((char*)(root_dir_entry_ptr->file_name), "dev_tty4");
+    // root_dir_entry_ptr++;
+    // root_dir_entry_ptr->nr_inode = 7;
+    // strcpy((char*)(root_dir_entry_ptr->file_name), "dev_tty5");
+    // root_dir_entry_ptr++;
+    // root_dir_entry_ptr->nr_inode = 8;
+    // strcpy((char*)(root_dir_entry_ptr->file_name), "dev_tty6");
+    // root_dir_entry_ptr++;
+    // write_sector(sb.nr_first_data_sector, fs_buf, SECTOR_SIZE);
+    // memset(fs_buf, 0, SECTOR_SIZE);
+    // root_dir_entry_ptr = (Dir_Entry*)fs_buf;
+    // root_dir_entry_ptr->nr_inode = 9;
+    // strcpy((char*)(root_dir_entry_ptr->file_name), "dev_tty7");
+    // write_sector(sb.nr_first_data_sector + 1, fs_buf, SECTOR_SIZE);
+    // printString("root directory init finish\n", -1);
 
 }
 

@@ -189,11 +189,11 @@ void tty_console_init(TTY_Console *pc, int nr_console){
 void screen_out_char(int nr_tty, char ch){
     if(tty_table[nr_tty].console.cursorAddr - tty_table[nr_tty].console.graphMemoryBase >= (80*25-1)*2){
         screen_roll_up(nr_tty);
-        tty_table[nr_tty].console.cursorAddr -= tty_table[nr_tty].console.cursorAddr % 160;
+        tty_table[nr_tty].console.cursorAddr -= (tty_table[nr_tty].console.cursorAddr - tty_table[nr_tty].console.graphMemoryBase) % 160;
     }
     if(ch == '\n'){
         screen_roll_up(nr_tty);
-        tty_table[nr_tty].console.cursorAddr -= tty_table[nr_tty].console.cursorAddr % 160;
+        tty_table[nr_tty].console.cursorAddr -= (tty_table[nr_tty].console.cursorAddr - tty_table[nr_tty].console.graphMemoryBase) % 160;
     }
     else{
         uint16_t out_ch = 0x0F00 | (0x00FF & ch);

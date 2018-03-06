@@ -150,12 +150,13 @@ void shell(){
 
 void Init(){
     sleep(2000);
-    int fd_stdin = open("/dev_tty0", O_RDWR);
-    int fd_stdout = open("/dev_tty0", O_RDWR);
+    int fd_stdin = open("/dev_tty2", O_RDWR);
+    int fd_stdout = open("/dev_tty2", O_RDWR);
     printf("STDIN   FD: %d\n", fd_stdin);
     printf("STDOUOT FD: %d\n", fd_stdout);
     printf("INIT START\n");
     if(!fork()){
+        debug_log("SHELL FORK SUCCESS");
         printf("SHELL FORK SUCCESS\n");
         shell();
     }
