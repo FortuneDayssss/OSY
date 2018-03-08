@@ -65,7 +65,8 @@ typedef struct PCB_struct{
 
 void schedule();                    //process.c
 void switch_to_next_process();      //kernel.asm
-uint32_t get_process_pyh_mem(uint32_t pid, uint32_t addr);
+uint32_t get_process_phy_mem(uint32_t pid, uint32_t addr);
+uint32_t get_process_vir_mem(uint32_t pid, uint32_t phy_addr);
 uint32_t sys_create_process(void (*startAddr), uint32_t privilege, uint32_t nr_tty);//process.c
 uint32_t sys_ipc_send(uint32_t dst_pid, Message* msg_ptr);
 uint32_t sys_ipc_recv(uint32_t src_pid, Message* msg_ptr);

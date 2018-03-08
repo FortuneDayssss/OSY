@@ -44,6 +44,8 @@ typedef struct{
 
 #define PROCESS_MEM_BASE            0x00A00000
 #define PROCESS_IMAGE_MEM_DEFAULT   0x00100000
+#define PROCESS_USER_STACK_TOP      0x000FFBF0
+#define PROCESS_USER_ARGS_BASE      0x000FFC00
 
 void mm_main();
 

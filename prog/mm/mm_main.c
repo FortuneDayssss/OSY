@@ -6,6 +6,17 @@
 #include "process.h"
 #include "string.h"
 #include "print.h"
+#include "stdio.h"
+#include "elf.h"
+
+// buffer for elf chache, used in exec (todo: define as a const variable?)
+uint8_t* mm_elf_buffer =        (uint8_t*)((uint32_t)0x00090000);   // buffer for elf
+uint32_t mm_elf_buffer_len =    0x0000FBFF;                         // 64KByte
+
+// buffer for args, used in exec (todo: define as a const variable?)
+uint8_t* mm_args_buffer =       (uint8_t*)((uint32_t)0x0009FC00);
+uint32_t mm_args_buffer_len =   0x000003FF;
+
 
 uint32_t do_fork(Message* msg);
 
@@ -13,10 +24,13 @@ uint32_t do_exit(Message* msg);
 
 uint32_t do_wait(Message* msg);
 
+uint32_t do_exec(Message* msg);
+
 uint32_t alloc_mem_for_proc(uint32_t pid, uint32_t mem_size);
 
 void init_mm(){
-
+    mm_elf_buffer =     (uint8_t*)((uint32_t)0x00090000);
+    mm_elf_buffer_len = 0x0000ffff;
 }
 
 uint8_t kernel_stack_backup[4 * 1024];
@@ -28,6 +42,7 @@ void mm_main(){
     Message msg;
     int parent_pid;
     int child_pid;
+    int temp_src_pid;
 
     sys_ipc_send(PID_INIT, &msg);
 
@@ -60,6 +75,13 @@ void mm_main(){
                 break;
             case MSG_MM_WAIT:
                 do_wait(&msg);
+                break;
+            case MSG_MM_EXEC:
+                temp_src_pid = msg.src_pid;
+                msg.mdata_response.status = do_exec(&msg);
+                if(msg.mdata_response.status == RESPONSE_FAIL){
+                    sys_ipc_send(temp_src_pid, &msg);
+                }
                 break;
             default:
                 break;
@@ -211,4 +233,125 @@ uint32_t do_wait(Message* msg){
         msg_response.mdata_response.pid = -1;
         sys_ipc_send(parent_pid, &msg_response);
     }
+}
+
+uint32_t do_exec(Message* msg){
+    uint32_t pid = msg->src_pid;
+    char*       path_buf =          (char*)get_process_phy_mem(pid, msg->mdata_mm_exec.path_name);
+    uint32_t    path_len =          msg->mdata_mm_exec.path_name_len;
+    uint8_t*    msg_args_buf =      (uint8_t*)get_process_phy_mem(pid, msg->mdata_mm_exec.args_buf);
+    uint32_t    msg_args_buf_len =  msg->mdata_mm_exec.args_buf_len;
+    
+
+    // copy path
+    char path_name[MAX_FILEPATH_LEN];
+    memcpy(path_name, path_buf, path_len);
+    path_name[path_len] = '\0';
+
+    // get file states (size)
+    File_Stat file_stat;
+    if(stat(path_name, &file_stat) == RESPONSE_FAIL){// fail
+        error_log("exec error, cannot get file state");
+        return RESPONSE_FAIL;
+    }
+    
+    // load file to buffer
+    int fd = open(path_name, O_RDWR);
+    if(fd == -1){// fail
+        error_log("exec error, cannot open file");
+        return RESPONSE_FAIL;
+    }
+    read(fd, mm_elf_buffer, file_stat.size);
+    close(fd);
+    
+    // load ELF
+    Elf32_Ehdr* elf_header = (Elf32_Ehdr*)(mm_elf_buffer);
+    for(int i = 0; i < elf_header->e_phnum; i++){
+        Elf32_Phdr* p_header = (Elf32_Phdr*)(mm_elf_buffer + elf_header->e_phoff + (i * elf_header->e_phentsize));
+        if(p_header->p_type == PT_LOAD){
+            memcpy(
+                (void*)get_process_phy_mem(pid, (uint32_t)p_header->p_vaddr), 
+                (void*)(mm_elf_buffer + p_header->p_offset),
+                p_header->p_filesz
+            );
+        }
+    }
+
+    // copy args
+    uint8_t* user_args_p = (uint8_t*)get_process_phy_mem(pid, (uint32_t)PROCESS_USER_ARGS_BASE);
+    memset(mm_args_buffer, 0, mm_args_buffer_len);
+    memset(user_args_p, 0, msg_args_buf_len);
+    memcpy(mm_args_buffer, msg_args_buf, msg_args_buf_len);
+    memcpy(
+        (void*)(user_args_p),
+        (void*)(mm_args_buffer),
+        msg_args_buf_len
+    );
+
+    // generate argv
+    uint32_t user_argc = 1;
+    uint32_t* user_argv = (uint32_t*)(user_args_p + msg_args_buf_len + 2);
+    *user_argv = (uint32_t)user_args_p;// first arg
+    user_argv++;
+
+    for(int i = 0; i < min(msg_args_buf_len, mm_args_buffer_len) - 1; i++){
+        if(*(user_args_p + i) == '\0' && *(user_args_p + i + 1) != '\0'){
+            *user_argv = (uint32_t)get_process_vir_mem(pid, (uint32_t)(user_args_p + i + 1));
+            user_argv++;
+            user_argc++;
+        }
+    }
+    user_argv = (uint32_t*)(user_args_p + msg_args_buf_len + 2);
+
+    // kernel stack
+    uint32_t* kernel_stack_p = (uint32_t*)(&pcb_table[pid].stack0[STACK_SIZE - 4]);
+    *kernel_stack_p = INDEX_LDT_MEMD << 3 | SA_TIL | SA_RPL_USER;//ss
+    kernel_stack_p--;
+    *kernel_stack_p = PROCESS_USER_STACK_TOP; //stack3 top
+    kernel_stack_p--;
+    *kernel_stack_p = 0x1202; //IF = 1, IOPL = 1
+    kernel_stack_p--;
+    *kernel_stack_p = INDEX_LDT_MEMC << 3 | SA_TIL | SA_RPL_USER;
+    kernel_stack_p--;
+    *kernel_stack_p = (uint32_t)(elf_header->e_entry);
+    kernel_stack_p--;
+    *kernel_stack_p = (uint32_t)get_process_vir_mem(pid, (uint32_t)user_argv); //eax(argv)
+    kernel_stack_p--;
+    *kernel_stack_p = user_argc; //ecx(argc)
+    kernel_stack_p--;
+    *kernel_stack_p = 0; //edx
+    kernel_stack_p--;
+    *kernel_stack_p = 0; //ebx
+    kernel_stack_p--;
+    *kernel_stack_p = PROCESS_USER_STACK_TOP; //esp
+    kernel_stack_p--;
+    *kernel_stack_p = 0; //ebp
+    kernel_stack_p--;
+    *kernel_stack_p = 0; //esi
+    kernel_stack_p--;
+    *kernel_stack_p = 0; //edi
+    kernel_stack_p--;
+    *kernel_stack_p = INDEX_LDT_MEMD << 3 | SA_TIL | SA_RPL_USER; //ds
+    kernel_stack_p--;
+    *kernel_stack_p = INDEX_LDT_MEMD << 3 | SA_TIL | SA_RPL_USER; //es
+    kernel_stack_p--;
+    *kernel_stack_p = INDEX_LDT_MEMD << 3 | SA_TIL | SA_RPL_USER; //fs
+    kernel_stack_p--;
+    *kernel_stack_p = SELECTOR_VIDEO; //gs
+    pcb_table[pid].esp = (uint32_t)kernel_stack_p;
+
+    // init process state
+    pcb_table[pid].state = PROCESS_READY;
+    pcb_table[pid].tick = 20;
+    // nr_tty = tty number before exec
+    pcb_table[pid].has_int_message = 0;
+    pcb_table[pid].pid_send_to = 0;
+    pcb_table[pid].pid_recv_from = 0;
+    pcb_table[pid].ipc_flag = IPC_FLAG_NONE;
+    pcb_table[pid].message_ptr = 0;
+    pcb_table[pid].message_queue = 0;
+    pcb_table[pid].next_sender = 0;
+    
+    debug_log("EXEC OK!");
+    return RESPONSE_SUCCESS;
 }

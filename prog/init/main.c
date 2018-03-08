@@ -20,64 +20,21 @@ void sleep(int time){
             ;
 }
 
-// void schedule_output_test(){
-//     upRollScreen();
-//     printString("schedule!\n", -1);
-// }
-
-// void p1test(){
-//     // for(int i = 0; i < 3; i++){
-//     //     ttywrite("p1test process\n", -1);
-//     // }
-//     uint32_t buf = 0xBBBBBBBB;
-//     Message msg;
-//     msg.type = MSG_HD_READ;
-//     msg.mdata_hd_read.sector = 0;
-//     msg.mdata_hd_read.buf_addr = (uint32_t)(&buf);
-//     msg.mdata_hd_read.len = 4;
-
-//     debug_log("ZZZZZ---");
-//     debug_log("AAAAA---");
-//     ipc_send(PID_HD, &msg);
-//     debug_log("BBBBB---");
-//     ipc_recv(PID_HD, &msg);
-//     printString("response:  ", -1);printInt32(msg.mdata_response.status);printString("\n", -1);
-//     printString("buf data:  ", -1);printInt32(buf);printString("\n", -1);
-   
-
-//     while(1){
-//         sleep(100);
-//         sleep(100);
-//     }
-// }
-
-
-// void p3test(){
-//     sleep(1000);
-//     char buf[60] = "hello world tty";
-//     printString("before open!\n", -1);
-//     int fd = open("/test_file_2", O_RDWR);
-//     // int fd = open("/dev_tty0", O_RDWR);
-//     if(fd != -1){
-//         printString("open ok!\n", -1);
-//         printInt32(pcb_table[3].filp_table[fd]->fd_inode->nr_inode);
-//         int len = read(fd, buf, 5);
-//         buf[len] = '\0';
-//         printString("\n", -1);
-//         debug_log("read from tty finish!");
-//         printString(buf, -1);
-//         // buf[len] = '\0';
-//         // debug_log("read ok!!!");
-//         // printString("data in /test_file_2: ", -1);printString(buf, -1);printString("\n", -1);
-//         // close(fd);
-//     }
-//     else{
-//         error_log("open fail");
-//     }
-
-//     while(1){}
-// }
-
+void file_stat_test(){
+    printf("file stat test\n");
+    File_Stat file_stat;
+    if(stat("/something.txt", &file_stat) == RESPONSE_SUCCESS){
+        printf("file state: \n");
+        printf("device: %d\n", file_stat.device);
+        printf("inode_nr: %d\n", file_stat.inode_nr);
+        printf("file_mode: %x\n", file_stat.file_mode);
+        printf("start_sec: %d\n", file_stat.start_sec);
+        printf("size: %d\n", file_stat.size);
+    }
+    else{
+        printf("error: cannot get file state\n");
+    }
+}
 
 void fork_test(){
     int test_data = 1;
@@ -269,7 +226,8 @@ void Init(){
     sleep(10);
     untar("/install.tar");
     printf("before shell\n");
-    file_test();
+    // file_test();
+    // file_stat_test();
     if(!fork()){
         shell();
         while(1){}

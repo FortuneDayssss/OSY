@@ -2,18 +2,24 @@
 #define _MESSAGE_H__
 
 #include "type.h"
+#include "stdio.h"
 
 #define RESPONSE_SUCCESS 1
 #define RESPONSE_FAIL 0
+
+// data for response
 typedef struct{
     uint32_t status;
     union{
         uint32_t fd;
         uint32_t len;
         uint32_t pid;
+        uint32_t file_stat_buf;
     };
 }MData_Response;
 
+
+// data for request
 typedef struct{
     uint32_t sector;
     uint32_t buf_addr;
@@ -57,6 +63,12 @@ typedef struct{
 }MData_FS_Exit;
 
 typedef struct{
+    uint32_t path;
+    uint32_t path_len;
+    uint32_t fs_stat_buf;
+}MData_FS_Stat;
+
+typedef struct{
     uint32_t user_pid;
     uint32_t nr_tty;
     uint32_t buf;
@@ -90,5 +102,12 @@ typedef struct{
 typedef struct{
     uint32_t dummy;
 }MData_MM_Wait;
+
+typedef struct{
+    uint32_t path_name;
+    uint32_t path_name_len;
+    uint32_t args_buf;
+    uint32_t args_buf_len;
+}MData_MM_Exec;
 
 #endif

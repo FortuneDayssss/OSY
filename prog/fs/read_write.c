@@ -72,7 +72,7 @@ int do_read(Message* msg){
             // printString("FILE SIZE: ", -1);printInt32(inode_ptr->file_size);printString("\n", -1);
             // printString("LEN IN LOOP: ", -1);printInt32(len_in_loop);printString("\n", -1);
             // printString("READ DATA: ", -1);printString((char*)sec_buf_p, len_in_loop);printString("\n", -1);
-            memcpy((void*)get_process_pyh_mem(msg->src_pid ,(uint32_t)user_buf_p), sec_buf_p, len_in_loop);
+            memcpy((void*)get_process_phy_mem(msg->src_pid ,(uint32_t)user_buf_p), sec_buf_p, len_in_loop);
             sec_buf_p = sec_buf;
             user_buf_p += len_in_loop;
             pos += len_in_loop;
@@ -129,7 +129,7 @@ int do_write(Message* msg){
             int len_in_loop = min(SECTOR_SIZE - (pos % SECTOR_SIZE), len - write_len_counter);
             // printString("LEN IN LOOP: ", -1);printInt32(len_in_loop);printString("\n", -1);
             // printString("WRITE INTO HD, DATA: ", -1);printString((char*)user_buf_p, len_in_loop);printString("\n", -1);
-            memcpy(sec_buf_p, (void*)(get_process_pyh_mem(msg->src_pid, (uint32_t)user_buf_p)), len_in_loop);
+            memcpy(sec_buf_p, (void*)(get_process_phy_mem(msg->src_pid, (uint32_t)user_buf_p)), len_in_loop);
             sec_buf_p = sec_buf;
             user_buf_p += len_in_loop;
             pos += len_in_loop;

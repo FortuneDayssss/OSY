@@ -113,7 +113,7 @@ int tty_do_read(Message* msg){
         tty->have_hooked_proc = 1;
         tty->hooked_pid = msg->mdata_tty_read.user_pid;
         // printInt32(tty->hooked_pid);printString("hooked on tty~", -1);printString("\n", -1);
-        tty->proc_buf = (uint8_t*)(get_process_pyh_mem(msg->mdata_tty_read.user_pid, msg->mdata_tty_read.buf));
+        tty->proc_buf = (uint8_t*)(get_process_phy_mem(msg->mdata_tty_read.user_pid, msg->mdata_tty_read.buf));
         tty->proc_buf_len = msg->mdata_tty_read.len;
         tty->copied_len = 0;
         return 1;
@@ -122,7 +122,7 @@ int tty_do_read(Message* msg){
 
 int tty_do_write(Message* msg){
     TTY* tty = &tty_table[msg->mdata_tty_write.nr_tty];
-    uint8_t* buf = (uint8_t*)(get_process_pyh_mem(msg->mdata_tty_write.user_pid, msg->mdata_tty_write.buf));
+    uint8_t* buf = (uint8_t*)(get_process_phy_mem(msg->mdata_tty_write.user_pid, msg->mdata_tty_write.buf));
     int size = msg->mdata_tty_write.len;
     int counter = 0;
     for (int i = 0; (size == -1 || i < size) && buf[i] != '\0' && tty->keyBuffer.count < TTY_BUFFER_SIZE; i++){

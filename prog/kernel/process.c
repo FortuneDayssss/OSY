@@ -191,7 +191,7 @@ uint32_t sys_ipc_send(uint32_t dst_pid, Message* msg_ptr){
     PCB* sender_pcb = current_process;
     uint32_t sender_pid = current_process - pcb_table;
     PCB* receiver_pcb = pcb_table + dst_pid;
-    ((Message*)get_process_pyh_mem(sender_pid, (uint32_t)msg_ptr))->src_pid = sender_pid;
+    ((Message*)get_process_phy_mem(sender_pid, (uint32_t)msg_ptr))->src_pid = sender_pid;
 
     // printString("pid: ", -1);printInt32(sender_pid);printString(" send to pid: ", -1);printInt32(dst_pid);upRollScreen();
 
@@ -201,8 +201,8 @@ uint32_t sys_ipc_send(uint32_t dst_pid, Message* msg_ptr){
         ((receiver_pcb->pid_recv_from == sender_pid) || (receiver_pcb->pid_recv_from == PID_ANY))
     ){
         memcpy(
-            (void*)get_process_pyh_mem(dst_pid, (uint32_t)receiver_pcb->message_ptr),
-            (void*)get_process_pyh_mem(sender_pid, (uint32_t)msg_ptr),
+            (void*)get_process_phy_mem(dst_pid, (uint32_t)receiver_pcb->message_ptr),
+            (void*)get_process_phy_mem(sender_pid, (uint32_t)msg_ptr),
             sizeof(Message)
         );
         ipc_unblock(dst_pid, IPC_FLAG_RECEIVEING);
@@ -243,8 +243,8 @@ uint32_t sys_ipc_recv(uint32_t src_pid, Message* msg_ptr){
     if(src_pid == PID_ANY || src_pid == PID_INT){
         // have interrupt message
         if(receiver_pcb->has_int_message){
-            ((Message*)get_process_pyh_mem(receiver_pid, (uint32_t)msg_ptr))->src_pid = PID_INT;
-            ((Message*)get_process_pyh_mem(receiver_pid, (uint32_t)msg_ptr))->type = MSG_INT;
+            ((Message*)get_process_phy_mem(receiver_pid, (uint32_t)msg_ptr))->src_pid = PID_INT;
+            ((Message*)get_process_phy_mem(receiver_pid, (uint32_t)msg_ptr))->type = MSG_INT;
             receiver_pcb->has_int_message = 0;
             get_msg_ok = 1;
         }
@@ -253,8 +253,8 @@ uint32_t sys_ipc_recv(uint32_t src_pid, Message* msg_ptr){
             sender_pcb = receiver_pcb->message_queue;
             receiver_pcb->message_queue = sender_pcb->next_sender;
             memcpy(
-                (void*)get_process_pyh_mem(receiver_pid, (uint32_t)msg_ptr),
-                (void*)get_process_pyh_mem(src_pid, (uint32_t)(sender_pcb->message_ptr)),
+                (void*)get_process_phy_mem(receiver_pid, (uint32_t)msg_ptr),
+                (void*)get_process_phy_mem(src_pid, (uint32_t)(sender_pcb->message_ptr)),
                 sizeof(Message)
             );
             ipc_unblock(sender_pcb - pcb_table, IPC_FLAG_SENDING);
@@ -274,8 +274,8 @@ uint32_t sys_ipc_recv(uint32_t src_pid, Message* msg_ptr){
         }
         sender_pcb->next_sender = 0;
         memcpy(
-            (void*)get_process_pyh_mem(receiver_pid, (uint32_t)msg_ptr),
-            (void*)get_process_pyh_mem(src_pid, (uint32_t)sender_pcb->message_ptr),
+            (void*)get_process_phy_mem(receiver_pid, (uint32_t)msg_ptr),
+            (void*)get_process_phy_mem(src_pid, (uint32_t)sender_pcb->message_ptr),
             sizeof(Message)
         );
         ipc_unblock(sender_pcb - pcb_table, IPC_FLAG_SENDING);
@@ -296,8 +296,8 @@ uint32_t sys_ipc_int_send(uint32_t dst_pid){
         (receiver_pcb->ipc_flag & IPC_FLAG_RECEIVEING) && 
         (receiver_pcb->pid_recv_from == PID_ANY || receiver_pcb->pid_recv_from == PID_INT)){
         receiver_pcb->has_int_message = 0;
-        ((Message*)get_process_pyh_mem(dst_pid, (uint32_t)receiver_pcb->message_ptr))->src_pid = PID_INT;
-        ((Message*)get_process_pyh_mem(dst_pid, (uint32_t)receiver_pcb->message_ptr))->type = MSG_INT;
+        ((Message*)get_process_phy_mem(dst_pid, (uint32_t)receiver_pcb->message_ptr))->src_pid = PID_INT;
+        ((Message*)get_process_phy_mem(dst_pid, (uint32_t)receiver_pcb->message_ptr))->type = MSG_INT;
         ipc_unblock(dst_pid, IPC_FLAG_RECEIVEING);
     }
     else{
@@ -305,8 +305,14 @@ uint32_t sys_ipc_int_send(uint32_t dst_pid){
     }
 }
 
-uint32_t get_process_pyh_mem(uint32_t pid, uint32_t addr){
+uint32_t get_process_phy_mem(uint32_t pid, uint32_t addr){
     Descriptor* ldt = &(pcb_table[pid].ldts[INDEX_LDT_MEMD]);
     uint32_t base = get_desc_base(ldt);
     return base + addr;
+}
+
+uint32_t get_process_vir_mem(uint32_t pid, uint32_t phy_addr){
+    Descriptor* ldt = &(pcb_table[pid].ldts[INDEX_LDT_MEMD]);
+    uint32_t base = get_desc_base(ldt);
+    return phy_addr - base;
 }

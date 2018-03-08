@@ -19,7 +19,7 @@ int do_open(Message* msg){
         return fd;
     }
     char path_name[MAX_FILENAME_LEN];
-    memcpy(path_name, (void*)get_process_pyh_mem(msg->src_pid, msg->mdata_fs_open.path_name), path_name_len);
+    memcpy(path_name, (void*)get_process_phy_mem(msg->src_pid, msg->mdata_fs_open.path_name), path_name_len);
 
     path_name[path_name_len] = 0;
     int flags = msg->mdata_fs_open.flags;

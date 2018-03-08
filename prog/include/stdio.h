@@ -14,6 +14,17 @@
 // string
 #define	STR_DEFAULT_LEN	1024
 
+// file stat
+typedef struct{
+    int device;
+    int inode_nr;
+    int file_mode;
+    union{
+        int start_sec;  // for regular file (file, dir)
+        int dev_id;     // for special file (tty)
+    };
+    int size;
+}File_Stat;
 
 int open(const char* path_name, int flags);
 
@@ -33,8 +44,10 @@ int printf(const char* fmt, ...);
 
 int vsprintf(char* buf, const char* fmt, va_list args);
 
-int sprintf(char *buf, const char *fmt, ...);
+int sprintf(char* buf, const char* fmt, ...);
 
-// todo: close, read, write, unlink, getpid ...
+int stat(const char* path, File_Stat* file_stat);
+
+int execl(const char *path, const char *arg, ...);
 
 #endif

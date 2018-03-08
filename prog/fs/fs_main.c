@@ -16,6 +16,7 @@ void load_super_block();
 INode* get_inode(uint32_t dev,int nr_inode);
 void do_fork_fd(Message* msg);
 void do_fs_exit(Message* msg);
+void do_fs_stat(Message* msg);
 
 void fs_main(){
     init_fs();
@@ -104,6 +105,9 @@ void fs_main(){
                 msg.type = MSG_RESPONSE;
                 sys_ipc_send(msg.src_pid, &msg);
                 // debug_log("MSG_FS_FORK_EXIT message OK-----------");
+                break;
+            case MSG_FS_STAT:
+                do_fs_stat(&msg);
                 break;
             default:
                 break;
@@ -429,4 +433,43 @@ void do_fs_exit(Message* msg){
             pcb->filp_table[i] = 0;
         }
     }
+}
+
+void do_fs_stat(Message* msg){
+    Message response_msg;
+    uint32_t pid = msg->src_pid;
+    char path[MAX_FILEPATH_LEN];
+    uint32_t path_len = msg->mdata_fs_stat.path_len;
+    File_Stat* file_stat = (File_Stat*)get_process_phy_mem(pid, msg->mdata_fs_stat.fs_stat_buf);
+
+    // copy path from user's memory
+    memcpy(path, (void*)get_process_phy_mem(pid, (uint32_t)(msg->mdata_fs_stat.path)), path_len);
+    path[path_len] = '\0';
+
+    // get inode and inode nr
+    int inode_nr = search_file(path);
+    INode* inode = 0;
+    if(inode_nr == INODE_INVALID){
+        response_msg.mdata_response.status = RESPONSE_FAIL;
+    }
+    else{
+        inode = get_inode(MAKE_DEV(DEV_HD, 1), inode_nr);
+        if(!inode){
+            response_msg.mdata_response.status = RESPONSE_FAIL;
+        }
+        else{
+            response_msg.mdata_response.status = RESPONSE_SUCCESS;
+        }
+    }
+
+    // response
+    response_msg.type = MSG_RESPONSE;
+    if(response_msg.mdata_response.status == RESPONSE_SUCCESS){
+        file_stat->device = inode->dev_no;
+        file_stat->inode_nr = inode_nr;
+        file_stat->file_mode = inode->access_mode;
+        file_stat->start_sec = inode->nr_start_sector;
+        file_stat->size = inode->file_size;
+    }
+    sys_ipc_send(pid, &response_msg);
 }

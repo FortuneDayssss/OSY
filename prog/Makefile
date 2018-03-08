@@ -36,6 +36,8 @@ OBJS		= kernel/kernel.o \
 				lib/exit.o \
 				lib/printf.o \
 				lib/vsprintf.o \
+				lib/stat.o \
+				lib/exec.o \
 				fs/fs_main.o \
 				fs/open.o \
 				fs/path.o \
@@ -143,6 +145,12 @@ lib/printf.o: lib/printf.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 lib/vsprintf.o: lib/vsprintf.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+lib/stat.o: lib/stat.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+lib/exec.o: lib/exec.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 fs/fs_main.o: fs/fs_main.c
