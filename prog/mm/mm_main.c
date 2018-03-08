@@ -24,11 +24,13 @@ uint8_t kernel_stack_backup[4 * 1024];
 void mm_main(){
 
     init_mm();
-    debug_log("mm init ok");
 
     Message msg;
     int parent_pid;
     int child_pid;
+
+    sys_ipc_send(PID_INIT, &msg);
+
 
     while(1){
         sys_ipc_recv(PID_ANY, &msg);

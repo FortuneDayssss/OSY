@@ -12,6 +12,7 @@
 #include "message.h"
 #include "stdio.h"
 #include "mm.h"
+#include "tar.h"
 
 void sleep(int time){
     for(int i = 0; i < time; i++)
@@ -19,64 +20,63 @@ void sleep(int time){
             ;
 }
 
-void schedule_output_test(){
-    upRollScreen();
-    printString("schedule!\n", -1);
-}
+// void schedule_output_test(){
+//     upRollScreen();
+//     printString("schedule!\n", -1);
+// }
 
-void p1test(){
-    // for(int i = 0; i < 3; i++){
-    //     ttywrite("p1test process\n", -1);
-    // }
-    uint32_t buf = 0xBBBBBBBB;
-    Message msg;
-    msg.type = MSG_HD_READ;
-    msg.mdata_hd_read.sector = 0;
-    msg.mdata_hd_read.buf_addr = (uint32_t)(&buf);
-    msg.mdata_hd_read.len = 4;
+// void p1test(){
+//     // for(int i = 0; i < 3; i++){
+//     //     ttywrite("p1test process\n", -1);
+//     // }
+//     uint32_t buf = 0xBBBBBBBB;
+//     Message msg;
+//     msg.type = MSG_HD_READ;
+//     msg.mdata_hd_read.sector = 0;
+//     msg.mdata_hd_read.buf_addr = (uint32_t)(&buf);
+//     msg.mdata_hd_read.len = 4;
 
-    debug_log("ZZZZZ---");
-    test();
-    debug_log("AAAAA---");
-    ipc_send(PID_HD, &msg);
-    debug_log("BBBBB---");
-    ipc_recv(PID_HD, &msg);
-    printString("response:  ", -1);printInt32(msg.mdata_response.status);printString("\n", -1);
-    printString("buf data:  ", -1);printInt32(buf);printString("\n", -1);
+//     debug_log("ZZZZZ---");
+//     debug_log("AAAAA---");
+//     ipc_send(PID_HD, &msg);
+//     debug_log("BBBBB---");
+//     ipc_recv(PID_HD, &msg);
+//     printString("response:  ", -1);printInt32(msg.mdata_response.status);printString("\n", -1);
+//     printString("buf data:  ", -1);printInt32(buf);printString("\n", -1);
    
 
-    while(1){
-        sleep(100);
-        sleep(100);
-    }
-}
+//     while(1){
+//         sleep(100);
+//         sleep(100);
+//     }
+// }
 
 
-void p3test(){
-    sleep(1000);
-    char buf[60] = "hello world tty";
-    printString("before open!\n", -1);
-    int fd = open("/test_file_2", O_RDWR);
-    // int fd = open("/dev_tty0", O_RDWR);
-    if(fd != -1){
-        printString("open ok!\n", -1);
-        printInt32(pcb_table[3].filp_table[fd]->fd_inode->nr_inode);
-        int len = read(fd, buf, 5);
-        buf[len] = '\0';
-        printString("\n", -1);
-        debug_log("read from tty finish!");
-        printString(buf, -1);
-        // buf[len] = '\0';
-        // debug_log("read ok!!!");
-        // printString("data in /test_file_2: ", -1);printString(buf, -1);printString("\n", -1);
-        // close(fd);
-    }
-    else{
-        error_log("open fail");
-    }
+// void p3test(){
+//     sleep(1000);
+//     char buf[60] = "hello world tty";
+//     printString("before open!\n", -1);
+//     int fd = open("/test_file_2", O_RDWR);
+//     // int fd = open("/dev_tty0", O_RDWR);
+//     if(fd != -1){
+//         printString("open ok!\n", -1);
+//         printInt32(pcb_table[3].filp_table[fd]->fd_inode->nr_inode);
+//         int len = read(fd, buf, 5);
+//         buf[len] = '\0';
+//         printString("\n", -1);
+//         debug_log("read from tty finish!");
+//         printString(buf, -1);
+//         // buf[len] = '\0';
+//         // debug_log("read ok!!!");
+//         // printString("data in /test_file_2: ", -1);printString(buf, -1);printString("\n", -1);
+//         // close(fd);
+//     }
+//     else{
+//         error_log("open fail");
+//     }
 
-    while(1){}
-}
+//     while(1){}
+// }
 
 
 void fork_test(){
@@ -126,6 +126,76 @@ void ASM_DEBUG_OUTPUT(){
     debug_log("ASM: DEBUG");
 }
 
+void untar(char* tar_path){
+    int inited_fd = open("/inited", O_CREATE | O_RDWR);
+    if(inited_fd == -1){
+        printf("untar was inited, skip\n");
+        return;
+    }
+    else{
+        close(inited_fd);
+    }
+
+    printf("untar file: %s\n", tar_path);
+    int tar_fd = open(tar_path, O_RDWR);
+    if(tar_fd == -1){
+        printf("error: cannot open tar\n");
+    }
+    int file_fd;
+    uint8_t buf[514];
+    char name_buf[64];
+    while(1){
+        memset(buf, 0, sizeof(uint8_t) * 514);
+        int head_len = read(tar_fd, buf, 512);
+        printString("head fname: ", -1);printString((char*)buf, 15);printString("\n", -1);
+        if(head_len == 0 || buf[0] == 0){
+            break;
+        }
+        Tar_Header* th = (Tar_Header*)buf;
+        char * cp = th->size;
+		int f_len = 0;
+		while (*cp){
+			f_len = (f_len * 8) + (*cp - '0');
+            cp++;
+        }
+        int real_flen = f_len;
+        if(f_len % 512)
+            f_len += (512 -  f_len % 512);
+
+        memset(name_buf, 0, sizeof(char) * 64);
+        name_buf[0] = '/';
+        printf("FILE NAME: %s\n", th->name);
+        strcpy(&name_buf[1], th->name);
+        
+        // while(1){}
+        file_fd = open(name_buf, O_CREATE | O_RDWR);
+        if(tar_fd == -1){
+            printf("error: cannot open new file\n");
+        }
+        int copied_len = 0;
+
+        printf("untar file: %s\nreal size:%d\nload size:%d\n", name_buf, real_flen, f_len);
+
+        while(copied_len < f_len){
+            int step_len = min((f_len - copied_len), 512);
+            read(tar_fd, buf, 512);
+            int wlen = write(file_fd, buf, step_len);
+            printf("copied_len=%d, step_len=%d, f_len=%d, wlen=%d\n", copied_len, step_len, f_len, wlen);
+            copied_len += step_len;
+        }
+        close(file_fd);
+
+        printf("%s untar success\n\n", name_buf);
+        // break;
+        // while(1){}
+    }
+    printf("before close\n");
+    close(tar_fd);
+    printf("after close\n");
+    
+
+}
+
 void shell(){
     printf("SHELL START\n");
     char cmd_buf[64];
@@ -141,24 +211,68 @@ void shell(){
         cmd_buf[cmd_len] = '\0';
         printf("%s\n", cmd_buf);
 
-
+        
     }
 
     error_log("SHELL EXIT");
     exit(0);
 }
 
+void file_test(){
+    printf("file test\n");
+    int fd = open("/something.txt", O_RDWR);
+    if(fd == -1){
+        printf("error: cannot open tar\n");
+    }
+    printf("open file ok\n");
+    char* buf[20];
+    read(fd, buf, 10);
+    printf("file content: %s\n", buf);
+    close(fd);
+}
+
 void Init(){
-    sleep(2000);
-    int fd_stdin = open("/dev_tty2", O_RDWR);
-    int fd_stdout = open("/dev_tty2", O_RDWR);
+    // wait for fs service and mm service initialize
+    int fs_service_init_ok = 0;
+    int mm_service_init_ok = 0;
+    Message msg;
+    while(!(fs_service_init_ok && mm_service_init_ok)){
+        memset(&msg, 0, sizeof(Message));
+        ipc_recv(PID_ANY, &msg);
+        // printString("got message from ", -1);printInt32(msg.src_pid);printString("\n", -1);
+        switch(msg.src_pid){
+            case PID_FS:
+                fs_service_init_ok = 1;
+                break;
+            case PID_MM:
+                mm_service_init_ok = 1;
+                break;
+            default:
+                break;
+        }
+    }
+
+    
+    int fd_stdin = open("/dev_tty0", O_RDWR);
+    int fd_stdout = open("/dev_tty0", O_RDWR);
+    if(fd_stdin == -1){
+        error_log("cannot open tty0 (stdin)");
+        while(1){}
+    }
+    else if(fd_stdout == -1){
+        error_log("cannot open tty0 (stdout)");
+        while(1){}
+    }
     printf("STDIN   FD: %d\n", fd_stdin);
     printf("STDOUOT FD: %d\n", fd_stdout);
     printf("INIT START\n");
+    sleep(10);
+    untar("/install.tar");
+    printf("before shell\n");
+    file_test();
     if(!fork()){
-        debug_log("SHELL FORK SUCCESS");
-        printf("SHELL FORK SUCCESS\n");
         shell();
+        while(1){}
     }
     else{
         // collect zombie child process and destroy them

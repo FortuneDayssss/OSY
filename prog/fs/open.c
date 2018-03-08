@@ -140,7 +140,8 @@ INode* create_file(char* path, int flags){
     }
     *dp = '\0';
     *fp = '\0';
-
+    printString("CREATE FILE DIR  NAME: ", -1);printString(dir_name, -1);printString("\n", -1);
+    printString("CREATE FILE FILE NAME: ", -1);printString(file_name, -1);printString("\n", -1);
     // 1. alloc imap-bitmap, smap-bitmap, inode 
     // 2. put new_inode_nr into dir's dir_entry_table
     // 3. return new inode pointer
@@ -176,7 +177,7 @@ int alloc_imap(uint32_t dev){
                 bit_index++;
             buf[j] |= (1 << bit_index);
             write_sector(nr_imap_start_sector + i, buf, SECTOR_SIZE);
-            return (SECTOR_SIZE * i + j) * 8 + bit_index;
+            return (SECTOR_SIZE * i + j) * 8 + bit_index + 1; // inode number start of 1, INODE_INVALID = 0
         }
     }
 
@@ -256,11 +257,11 @@ void* sync_inode(INode* inode_ptr){
 }
 
 void new_dir_entry(INode* dir_inode, int file_inode_nr, char* file_name){
-    printString("DIR_INODE_NUMBER: ", -1);printInt32(dir_inode->nr_inode);printString("\n", -1);
+    // printString("DIR_INODE_NUMBER: ", -1);printInt32(dir_inode->nr_inode);printString("\n", -1);
     int dir_sector_start_nr = dir_inode->nr_start_sector;
     int dir_sector_nr = dir_inode->file_size / SECTOR_SIZE + 1;
     int dir_entry_table_size = dir_inode->file_size / DIR_ENTRY_SIZE;
-    printString("DEBUG: DIR_FILE_SIZE: ", -1);printInt32(dir_entry_table_size);printString("\n", -1);
+    // printString("DEBUG: DIR_FILE_SIZE: ", -1);printInt32(dir_entry_table_size);printString("\n", -1);
 
     Dir_Entry* dir_entry_table_ptr;
     Dir_Entry* new_de_ptr = 0;
@@ -268,22 +269,22 @@ void new_dir_entry(INode* dir_inode, int file_inode_nr, char* file_name){
     int counter = 0;
     int i;
     for(i = 0; i < dir_sector_nr; i++){
-        printString("STARTTT_SECTORRR: ", -1);printInt32(dir_inode->nr_start_sector + i);printString("\n", -1);
+        // printString("STARTTT_SECTORRR: ", -1);printInt32(dir_inode->nr_start_sector + i);printString("\n", -1);
         read_sector(dir_inode->nr_start_sector + i, buf, SECTOR_SIZE);
         for(int j = 0; j < SECTOR_SIZE / DIR_ENTRY_SIZE; j++){
             dir_entry_table_ptr = (Dir_Entry*)buf + j;
             if(++counter > dir_entry_table_size){
-                debug_log("EEEEEE1");
+                // debug_log("EEEEEE1");
                 break;
             }
             if(dir_entry_table_ptr->nr_inode == INODE_INVALID){
-                debug_log("EEEEEE2");
+                // debug_log("EEEEEE2");
                 new_de_ptr = dir_entry_table_ptr;
                 break;
             }
         }
         if(counter > dir_entry_table_size || new_de_ptr){
-            debug_log("EEEEEE3");
+            // debug_log("EEEEEE3");
             break;
         }
     }

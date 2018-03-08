@@ -1,0 +1,1 @@
+dd if=app/e.tar of=c.img bs=512 seek=32768 count=60 conv=notrunc

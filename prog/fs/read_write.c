@@ -61,15 +61,17 @@ int do_read(Message* msg){
     else{ // copy from hd sec
         int sec_min = inode_ptr->nr_start_sector + (pos / SECTOR_SIZE);
         int sec_max = inode_ptr->nr_start_sector + (pos_end / SECTOR_SIZE);
+        int user_read_len = msg->mdata_fs_read.len;
         uint8_t* sec_buf_p = sec_buf + (pos % SECTOR_SIZE);
         uint8_t* user_buf_p = (uint8_t*)buf;
         int read_len_counter = 0;
         for(int sec = sec_min; sec <= sec_max; sec++){
             read_sector(sec, sec_buf, SECTOR_SIZE);
             int len_in_loop = min(SECTOR_SIZE - (pos % SECTOR_SIZE), inode_ptr->file_size - pos);
-            printString("FILE SIZE: ", -1);printInt32(inode_ptr->file_size);printString("\n", -1);
-            printString("LEN IN LOOP: ", -1);printInt32(len_in_loop);printString("\n", -1);
-            printString("READ DATA: ", -1);printString((char*)sec_buf_p, len_in_loop);printString("\n", -1);
+            len_in_loop = min(len_in_loop, user_read_len - read_len_counter);
+            // printString("FILE SIZE: ", -1);printInt32(inode_ptr->file_size);printString("\n", -1);
+            // printString("LEN IN LOOP: ", -1);printInt32(len_in_loop);printString("\n", -1);
+            // printString("READ DATA: ", -1);printString((char*)sec_buf_p, len_in_loop);printString("\n", -1);
             memcpy((void*)get_process_pyh_mem(msg->src_pid ,(uint32_t)user_buf_p), sec_buf_p, len_in_loop);
             sec_buf_p = sec_buf;
             user_buf_p += len_in_loop;
@@ -78,7 +80,9 @@ int do_read(Message* msg){
         }
         src_proc->filp_table[fd]->fd_pos = pos;
         msg->mdata_response.len = read_len_counter;
+        // printString("fs send to user\n", -1);
         sys_ipc_send(msg->src_pid, msg);
+        // printString("fs read real finish\n", -1);
         return read_len_counter;
     }
 }
@@ -123,8 +127,8 @@ int do_write(Message* msg){
         for(int sec = sec_min; sec <= sec_max; sec++){
             read_sector(sec, sec_buf, SECTOR_SIZE);
             int len_in_loop = min(SECTOR_SIZE - (pos % SECTOR_SIZE), len - write_len_counter);
-            printString("LEN IN LOOP: ", -1);printInt32(len_in_loop);printString("\n", -1);
-            printString("WRITE INTO HD, DATA: ", -1);printString((char*)user_buf_p, len_in_loop);printString("\n", -1);
+            // printString("LEN IN LOOP: ", -1);printInt32(len_in_loop);printString("\n", -1);
+            // printString("WRITE INTO HD, DATA: ", -1);printString((char*)user_buf_p, len_in_loop);printString("\n", -1);
             memcpy(sec_buf_p, (void*)(get_process_pyh_mem(msg->src_pid, (uint32_t)user_buf_p)), len_in_loop);
             sec_buf_p = sec_buf;
             user_buf_p += len_in_loop;

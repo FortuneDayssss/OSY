@@ -111,7 +111,9 @@ void hd_read(Message* msg){
     }while(remain_len > 0);
     // printString("read finish! \n", -1);
     msg->mdata_response.status = RESPONSE_SUCCESS;
+    // printString("send to fs! \n", -1);
     sys_ipc_send(msg->src_pid, msg);
+    // printString("read real finish! \n", -1);
 }
 
 void hd_write(Message* msg){

@@ -5,7 +5,7 @@
 #include "print.h"
 
 void ipc_block(uint32_t pid, uint32_t ipc_flags){//just can use in kernel privilege
-    // __asm__("cli\n\t" ::);
+    __asm__("cli\n\t" ::);
     pcb_table[pid].ipc_flag |= ipc_flags;
     
     __asm__(
@@ -29,9 +29,9 @@ void ipc_block(uint32_t pid, uint32_t ipc_flags){//just can use in kernel privil
 }
 
 void ipc_unblock(uint32_t pid, uint32_t ipc_flags){
-    // __asm__("cli\n\t" ::);
+    __asm__("cli\n\t" ::);
     pcb_table[pid].ipc_flag &= ~ipc_flags;
-    // __asm__("sti\n\t" ::);
+    __asm__("sti\n\t" ::);
 }
 
 void schedule(){
@@ -56,6 +56,8 @@ void schedule(){
     // if(current_process != next_process){
     //     printString("next process:", -1);
     //     printInt32(next_process - pcb_table);
+    //     upRollScreen();
+    //     printInt32(pcb_table[4].ipc_flag);
     //     upRollScreen();
     // }
 }
@@ -208,6 +210,7 @@ uint32_t sys_ipc_send(uint32_t dst_pid, Message* msg_ptr){
     }
     // receiver is not wait for current process
     else{
+        // printString("not waiting for it and wait for", -1);printInt32(receiver_pcb->pid_recv_from);printString("\n", -1);
         sender_pcb->pid_send_to = dst_pid;
         sender_pcb->message_ptr = msg_ptr;
         sender_pcb->next_sender = 0;

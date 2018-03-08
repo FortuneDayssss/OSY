@@ -15,6 +15,9 @@
 #define ACCESS_MODE_CHAR_SPECIAL    0020000
 #define ACCESS_MODE_NAMED_PIPE      0010000
 
+#define INSTALL_TAR_SECTOR_START    0x8000
+#define INSTALL_TAR_SECTOR_NR       0x800
+
 typedef struct{
     // load from hard disk (56 Byte)
     uint32_t    magic;

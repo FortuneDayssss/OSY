@@ -54,6 +54,7 @@ void fs_main(){
 
     printString("init fs ok! fs service is waiting for message...\n", -1);
     Message msg;
+    sys_ipc_send(PID_INIT, &msg);
     uint32_t forward_pid;
     uint32_t forward_len;
     while(1){
@@ -132,6 +133,7 @@ void init_fs(){
         printString("there is no file system, create a system...\n", -1);
         mkfs();
         printString("mkfs ok!\n", -1);
+        load_super_block();
     }
     else{
         printString("file system was detected!\n", -1);
@@ -159,16 +161,17 @@ void write_sector(uint32_t sector, void* buf, uint32_t len){
     msg.mdata_hd_write.sector = sector;
     msg.mdata_hd_write.buf_addr = (uint32_t)buf;
     msg.mdata_hd_write.len = len;
-    printString("fs wirte sector send message\n", -1);
+    // printString("fs wirte sector send message\n", -1);
     sys_ipc_send(PID_HD, &msg);
     sys_ipc_recv(PID_HD, &msg);
-    printString("fs write sector ok\n", -1);
+    // printString("fs write sector ok\n", -1);
 }
 
-uint8_t fs_buf[SECTOR_SIZE * 2];
+// uint8_t fs_buf[SECTOR_SIZE * 2];
 // uint8_t* fs_buf = (uint8_t*)(0x00600000);
 
 void mkfs(){
+    uint8_t fs_buf[SECTOR_SIZE * 2];
     /*  sectors in hard disk
         0:      boot sector (todo: need migrate)
         1:      super block
@@ -208,7 +211,8 @@ void mkfs(){
         1:          root inode
         2:          tty0
         ...
-        10:         tty7
+        9:          tty7
+        10:         install.tar
         11-end:     available
     */
     memset(fs_buf, 0, SECTOR_SIZE);
@@ -234,11 +238,11 @@ void mkfs(){
     }
     printString("sector bitmap init finish\n", -1);
 
-    // inodes ., tty0, tty1, ..., tty7
+    // inodes ., tty0, tty1, ..., tty7, install.tar
     memset(fs_buf, 0, SECTOR_SIZE);
     INode* inode_ptr = (INode*)fs_buf;
     inode_ptr->access_mode = ACCESS_MODE_DIRECTORY;
-    inode_ptr->file_size = DIR_ENTRY_SIZE * 9;
+    inode_ptr->file_size = DIR_ENTRY_SIZE * 10;
     inode_ptr->nr_start_sector = sb.nr_first_data_sector;
     inode_ptr->nr_sectors = NR_DEFAULT_FILE_SECTORS;
 
@@ -248,6 +252,12 @@ void mkfs(){
         ((INode*)(&fs_buf[(i + 1) * INODE_SIZE]))->nr_start_sector = MAKE_DEV(DEV_TTY, i);
         ((INode*)(&fs_buf[(i + 1) * INODE_SIZE]))->nr_sectors = 0;
     }
+    
+    inode_ptr = (INode*)(&fs_buf[(1 + NR_CONSOLES) * INODE_SIZE]);
+    inode_ptr->access_mode = ACCESS_MODE_REGULAR;
+    inode_ptr->file_size = INSTALL_TAR_SECTOR_NR * SECTOR_SIZE;
+    inode_ptr->nr_start_sector = INSTALL_TAR_SECTOR_START;
+    inode_ptr->nr_sectors = INSTALL_TAR_SECTOR_NR;
     write_sector(2 + sb.nr_imap_sectors + sb.nr_smap_sectors, fs_buf, SECTOR_SIZE);
     printString("inode init finish\n", -1);
 
@@ -269,6 +279,9 @@ void mkfs(){
     root_dir_entry_ptr = (Dir_Entry*)fs_buf;
     root_dir_entry_ptr->nr_inode = 9;
     sprintf((char*)root_dir_entry_ptr->file_name, "dev_tty%d", 7);
+    root_dir_entry_ptr++;
+    root_dir_entry_ptr->nr_inode = 10;
+    sprintf((char*)root_dir_entry_ptr->file_name, "install.tar");
     write_sector(sb.nr_first_data_sector + 1, fs_buf, SECTOR_SIZE);
     printString("root directory init finish\n", -1);
 
@@ -306,6 +319,7 @@ void mkfs(){
 }
 
 void load_super_block(){
+    uint8_t fs_buf[SECTOR_SIZE * 2];
     memset(fs_buf, 0, SECTOR_SIZE);
     Message msg;
     msg.type = MSG_HD_READ;

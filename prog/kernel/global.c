@@ -4,6 +4,7 @@
 #include "type.h"
 #include "tty.h"
 #include "mm.h"
+#include "systemcall.h"
 
 //GDT
 uint8_t     gdt_ptr[6];//limit(2Byte)  Base(4Byte)
@@ -44,7 +45,7 @@ INode*              root_inode;
 Page_Table* kernel_page_table = (Page_Table*)(0x00200000);
 
 
-//device - driver map
+// device - driver map
 uint32_t dd_map[] = {
     PID_INVALID,    //0: unused
     PID_INVALID,    //1: reserved for floppy driver
@@ -52,4 +53,14 @@ uint32_t dd_map[] = {
     PID_HD,         //3: hard disk driver
     PID_TTY,        //4: tty
     PID_INVALID     //5: reserved for scsi disk driver
+};
+
+// system call
+system_call_handler system_call_table[SYSTEM_CALL_NUM] = {
+    (system_call_handler)0,
+    (system_call_handler)0,
+    (system_call_handler)sys_tty_write,
+    (system_call_handler)sys_ipc_send,
+    (system_call_handler)sys_ipc_recv,
+    0
 };
