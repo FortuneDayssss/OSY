@@ -157,8 +157,12 @@ void shell(){
     printf("SHELL START\n");
     char cmd_buf[64];
     char cmd_len;
+    char exec_path[MAX_FILEPATH_LEN];
+    char* argv[20];
+    char** argv_p;
     while(1){
-        write(STDOUT, "$ ", 2);
+        printf("$ ");
+        memset(cmd_buf, 0, sizeof(char) * 64);
         cmd_len = read(STDIN, cmd_buf, 50);
         if(cmd_len == -1){
             printString("TTY read fail~~", -1);
@@ -166,9 +170,33 @@ void shell(){
             while(1){}
         }
         cmd_buf[cmd_len] = '\0';
-        printf("%s\n", cmd_buf);
 
-        
+        // printf("cmd size=%d\n", cmd_len);
+        for(int i = 0; i < cmd_len; i++)
+            if(cmd_buf[i] == ' ')
+                cmd_buf[i] = '\0';
+
+        memset(exec_path, 0, sizeof(char) * MAX_FILEPATH_LEN);
+        strcpy(exec_path, cmd_buf);
+        memset(argv, 0, sizeof(char*) * 20);
+        argv_p = argv;
+        for(int i = 0; i < cmd_len - 1; i++){
+            if(cmd_buf[i] == '\0' && cmd_buf[i + 1] != '\0'){
+                *argv_p = &cmd_buf[i + 1];
+                argv_p++;
+            }
+        }
+        *argv_p = 0;
+
+        int pid = fork();
+        if(!pid){
+            if(!execv(exec_path, argv)){
+                printf("command not found\n");
+                exit(0);
+            }
+        }
+        int status;
+        wait(&status);
     }
 
     error_log("SHELL EXIT");
@@ -186,6 +214,15 @@ void file_test(){
     read(fd, buf, 10);
     printf("file content: %s\n", buf);
     close(fd);
+}
+
+void dir_test(){
+    int fd = open("/", O_RDWR);
+    Dir_Entry de[20];
+    read(fd, de, sizeof(Dir_Entry) * 20);
+    for(int i = 0; i < 20; i++){
+        printf("filename: %s\n", de[i].file_name);
+    }
 }
 
 void Init(){
@@ -226,19 +263,37 @@ void Init(){
     sleep(10);
     untar("/install.tar");
     printf("before shell\n");
+    // dir_test();
     // file_test();
     // file_stat_test();
     if(!fork()){
+        // while(1){
+        //     printf("child\n");
+        //     sleep(200);
+        // }
+        // execl("/echo", "aaa", "bbb");
+        // sleep(100);
         shell();
         while(1){}
     }
     else{
+        // printf("parent\n");
+        // sleep(200);
+        // while(1){
+        //     printf("parent\n");
+        //     sleep(200);
+        // }
         // collect zombie child process and destroy them
+        // printf("collect zombies...\n");
         while(1){
             int child_exit_status;
             wait(&child_exit_status);
         }
     }
+}
+
+void dummy_process(){
+    while(1);
 }
 
 int main(){
@@ -256,6 +311,7 @@ int main(){
     // sys_create_process(p1test, PRIVILEGE_USER, 0);
     // sys_create_process(p3test, PRIVILEGE_USER, 0);
     sys_create_process(Init, PRIVILEGE_USER, 0);
+    // sys_create_process(dummy_process, PRIVILEGE_KERNEL, 0);
     // sys_create_process(fork_test, PRIVILEGE_USER, 0);
     
     current_process = pcb_table;

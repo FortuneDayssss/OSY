@@ -57,7 +57,23 @@ void schedule(){
     //     printString("next process:", -1);
     //     printInt32(next_process - pcb_table);
     //     upRollScreen();
+    //     printString("fs is receiveing?", -1);
+    //     printInt32(pcb_table[2].ipc_flag);
+    //     printString("fs is wait for:", -1);
+    //     printInt32(pcb_table[2].pid_recv_from);
+    //     upRollScreen();
+    //     printString("init is receiveing?", -1);
     //     printInt32(pcb_table[4].ipc_flag);
+    //     printString("init is wait for:", -1);
+    //     printInt32(pcb_table[4].pid_recv_from);
+    //     upRollScreen();
+    //     printString("shell is receiveing?", -1);
+    //     printInt32(pcb_table[5].ipc_flag);
+    //     printString("shell is wait for:", -1);
+    //     printInt32(pcb_table[5].pid_recv_from);
+    //     upRollScreen();
+    //     printString("shell has int message? ", -1);
+    //     printInt32(pcb_table[5].has_int_message);
     //     upRollScreen();
     // }
 }
@@ -205,6 +221,7 @@ uint32_t sys_ipc_send(uint32_t dst_pid, Message* msg_ptr){
             (void*)get_process_phy_mem(sender_pid, (uint32_t)msg_ptr),
             sizeof(Message)
         );
+        receiver_pcb->message_ptr = 0;
         ipc_unblock(dst_pid, IPC_FLAG_RECEIVEING);
         // printInt32(sender_pid);printString(" SENDER UNBLOCK PID ", -1);printInt32(dst_pid);printString("\n", -1);
     }
@@ -252,11 +269,13 @@ uint32_t sys_ipc_recv(uint32_t src_pid, Message* msg_ptr){
         else if(src_pid == PID_ANY && receiver_pcb->message_queue){
             sender_pcb = receiver_pcb->message_queue;
             receiver_pcb->message_queue = sender_pcb->next_sender;
+            sender_pcb->message_ptr->src_pid = (sender_pcb - pcb_table);
             memcpy(
                 (void*)get_process_phy_mem(receiver_pid, (uint32_t)msg_ptr),
                 (void*)get_process_phy_mem(src_pid, (uint32_t)(sender_pcb->message_ptr)),
                 sizeof(Message)
             );
+            sender_pcb->message_ptr = 0;
             ipc_unblock(sender_pcb - pcb_table, IPC_FLAG_SENDING);
             get_msg_ok = 1;
         }
@@ -273,11 +292,13 @@ uint32_t sys_ipc_recv(uint32_t src_pid, Message* msg_ptr){
             previous_sender->next_sender = sender_pcb->next_sender;
         }
         sender_pcb->next_sender = 0;
+        sender_pcb->message_ptr->src_pid = (sender_pcb - pcb_table);
         memcpy(
             (void*)get_process_phy_mem(receiver_pid, (uint32_t)msg_ptr),
             (void*)get_process_phy_mem(src_pid, (uint32_t)sender_pcb->message_ptr),
             sizeof(Message)
         );
+        sender_pcb->message_ptr = 0;
         ipc_unblock(sender_pcb - pcb_table, IPC_FLAG_SENDING);
         get_msg_ok = 1;
     }
@@ -298,6 +319,7 @@ uint32_t sys_ipc_int_send(uint32_t dst_pid){
         receiver_pcb->has_int_message = 0;
         ((Message*)get_process_phy_mem(dst_pid, (uint32_t)receiver_pcb->message_ptr))->src_pid = PID_INT;
         ((Message*)get_process_phy_mem(dst_pid, (uint32_t)receiver_pcb->message_ptr))->type = MSG_INT;
+        receiver_pcb->message_ptr = 0;
         ipc_unblock(dst_pid, IPC_FLAG_RECEIVEING);
     }
     else{

@@ -63,12 +63,14 @@ void mm_main(){
                     msg.mdata_response.pid = 0;
                     sys_ipc_send(child_pid, &msg);
                     sys_ipc_recv(child_pid, &child_ok_msg);
+                    debug_log("child awake parent");
                     if(child_ok_msg.type != MSG_MM_FORK_CHILD_OK)
                         error_log("fork child ok msg error");
                 }
                 msg.mdata_response.pid = child_pid;
                 memcpy(pcb_table[parent_pid].stack0, kernel_stack_backup, 4 * 1024);
                 sys_ipc_send(parent_pid, &msg);
+                debug_log("fork ok");
                 break;
             case MSG_MM_EXIT:
                 do_exit(&msg);
@@ -86,6 +88,7 @@ void mm_main(){
             default:
                 break;
         }
+        memset(&msg, 0, sizeof(Message));
     }
 }
 
@@ -352,6 +355,6 @@ uint32_t do_exec(Message* msg){
     pcb_table[pid].message_queue = 0;
     pcb_table[pid].next_sender = 0;
     
-    debug_log("EXEC OK!");
+    // debug_log("EXEC OK!");
     return RESPONSE_SUCCESS;
 }

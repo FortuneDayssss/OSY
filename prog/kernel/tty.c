@@ -149,25 +149,26 @@ void tty_main(){
         tty_read_loop(current_tty);
         tty_write_loop(current_tty);
         sys_ipc_recv(PID_ANY, &msg);
+        uint32_t pid = msg.src_pid;
         switch(msg.type){
             case MSG_TTY_READ:
                 // printString("TTY got read message from ", -1);printInt32(msg.src_pid);printString("\n", -1);
                 msg.type = MSG_RESPONSE;
                 msg.mdata_response.status = tty_do_read(&msg);
-                sys_ipc_send(msg.src_pid, &msg);
+                sys_ipc_send(pid, &msg);
                 break;
             case MSG_TTY_WRITE:
                 // printString("TTY got write message from ", -1);printInt32(msg.src_pid);printString("\n", -1);
                 msg.type = MSG_RESPONSE;
                 msg.mdata_response.len = tty_do_write(&msg);
-                sys_ipc_send(msg.src_pid, &msg);
+                sys_ipc_send(pid, &msg);
                 break;
             case MSG_INT:
                 break;
             default:
                 break;
         }
-        memset(&msg, 0, sizeof(Message));
+        // memset(&msg, 0, sizeof(Message));
     }
 }
 

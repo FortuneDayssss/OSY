@@ -60,7 +60,10 @@ void fs_main(){
     uint32_t forward_len;
     while(1){
         sys_ipc_recv(PID_ANY, &msg);
+        // if(msg.src_pid == PID_FS)
+            // continue;
         // printString("FS got message from ", -1);printInt32(msg.src_pid);printString("\n", -1);
+        // printString("message type ", -1);printInt32(msg.type);printString("\n", -1);
         switch(msg.type){
             case MSG_FS_OPEN:
                 // debug_log("get open message-----------");
@@ -79,8 +82,10 @@ void fs_main(){
                 // because if read from tty, os should block user process and wait for key input
                 break;
             case MSG_FS_WRITE:
+                // debug_log("get write message-----------");
                 msg.mdata_response.len = do_write(&msg);
                 sys_ipc_send(msg.src_pid, &msg);
+                // debug_log("fs write ok-----------");
                 break;
             case MSG_FS_UNLINK:
                 break;

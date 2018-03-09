@@ -34,10 +34,12 @@ int execv(const char *path, char * argv[]){
     args_buf_p += step_len + 1;
 
     // copy other arg
+    printf("path: %s\n", path);
     while(*p != 0){
         strcpy(args_buf_p, *p);
         step_len = strlen(*p);
         args_buf_p[step_len] = '\0';
+        // printf("arg%d: %s\n", args_buf_p - args_buf, args_buf_p);
         args_buf_p += step_len + 1;
         p++;
     }

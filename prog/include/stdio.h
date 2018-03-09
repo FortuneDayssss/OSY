@@ -48,6 +48,10 @@ int sprintf(char* buf, const char* fmt, ...);
 
 int stat(const char* path, File_Stat* file_stat);
 
+int exec(const char* path);
+
+int execv(const char *path, char * argv[]);
+
 int execl(const char *path, const char *arg, ...);
 
 #endif
