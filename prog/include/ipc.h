@@ -28,6 +28,7 @@ enum msgtype{
     MSG_PM_EXIT,
     MSG_MM_FORK,
     MSG_MM_FORK_CHILD_OK,
+    MSG_MM_FORK_PARENT_OK,
     MSG_MM_EXIT,
     MSG_MM_WAIT,
     MSG_MM_EXEC
@@ -52,6 +53,7 @@ typedef struct{
         MData_TTY_Read_OK       mdata_tty_read_ok;
         MData_MM_Fork           mdata_mm_fork;
         MData_MM_Fork_Child_OK  mdata_mm_fork_child_ok;
+        MData_MM_Fork_Parent_OK mdata_mm_fork_parent_ok;
         MData_MM_Exit           mdata_mm_exit;
         MData_MM_Wait           mdata_mm_wait;
         MData_MM_Exec           mdata_mm_exec;

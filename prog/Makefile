@@ -21,6 +21,7 @@ OBJS		= kernel/kernel.o \
 				kernel/keyboard.o \
 				kernel/tty.o \
 				kernel/printk.o \
+				kernel/debug.o \
 				init/main.o \
 				init/init.o \
 				init/protect.o \
@@ -100,6 +101,9 @@ kernel/tty.o: kernel/tty.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 kernel/printk.o: kernel/printk.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+kernel/debug.o: kernel/debug.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 init/init.o: init/init.c

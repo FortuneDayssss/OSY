@@ -53,39 +53,54 @@ void mm_main(){
         // printString("msg type: ", -1);printInt32(msg.type);printString("\n", -1);
         switch(msg.type){
             case MSG_MM_FORK:
-                debug_log("get fork message");
+                // debug_log("get fork message");
                 parent_pid = msg.src_pid;
                 child_pid = do_fork(&msg);
                 // printString("child pid:", -1);printInt32(child_pid);printString("\n", -1);
                 if(child_pid != -1){//success, awake child process before awake parent
                     Message child_ok_msg;
                     memcpy(kernel_stack_backup, pcb_table[parent_pid].stack0, 4 * 1024);
-                    msg.mdata_response.pid = 0;
+                    // msg.mdata_response.pid = 0;
+                    msg.mdata_response.is_parent = 0;
+                    msg.mdata_response.child_pid = child_pid;
+                    msg.mdata_response.parent_pid = parent_pid;
                     sys_ipc_send(child_pid, &msg);
                     sys_ipc_recv(child_pid, &child_ok_msg);
-                    debug_log("child awake parent");
-                    if(child_ok_msg.type != MSG_MM_FORK_CHILD_OK)
+                    // debug_log("child awake parent");
+                    if(child_ok_msg.type != MSG_MM_FORK_CHILD_OK){
                         error_log("fork child ok msg error");
+                        printString("msg type: ", -1);printInt32(child_ok_msg.type);printString("\n", -1);
+                    }
                 }
                 msg.mdata_response.pid = child_pid;
                 memcpy(pcb_table[parent_pid].stack0, kernel_stack_backup, 4 * 1024);
+                msg.mdata_response.is_parent = 1;
                 sys_ipc_send(parent_pid, &msg);
-                debug_log("fork ok");
+                // debug_log("fork ok");
                 break;
             case MSG_MM_EXIT:
+                // debug_log("get exit message");
                 do_exit(&msg);
                 break;
             case MSG_MM_WAIT:
+                // if(msg.src_pid == 5)
+                //     debug_log("get wait message");
                 do_wait(&msg);
                 break;
             case MSG_MM_EXEC:
+                // debug_log("get exec message");
                 temp_src_pid = msg.src_pid;
                 msg.mdata_response.status = do_exec(&msg);
+                // debug_log("do exec ok!");
                 if(msg.mdata_response.status == RESPONSE_FAIL){
                     sys_ipc_send(temp_src_pid, &msg);
                 }
+                // debug_log("exec ok");
                 break;
             default:
+                error_log("mm got unsupported message");
+                printString("unsupported message type: ", -1);printInt32(msg.type);printString("\n", -1);
+                printString("unsupported message from: ", -1);printInt32(msg.src_pid);printString("\n", -1);
                 break;
         }
         memset(&msg, 0, sizeof(Message));

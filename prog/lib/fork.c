@@ -13,9 +13,22 @@ int fork(){
     ipc_send(PID_MM, &msg);
     ipc_recv(PID_MM, &msg);
     // debug_log("after send fork msg");
-    if(msg.mdata_response.pid == 0){ // awake child before awake parent
+    if(msg.mdata_response.is_parent == 0){ // awake child before awake parent
+        // debug_log("user: child: stack ready, start to awake parent...");
         msg.type = MSG_MM_FORK_CHILD_OK;
         ipc_send(PID_MM, &msg);
+        ipc_recv(msg.mdata_response.parent_pid, &msg);
+        if(msg.type == MSG_MM_FORK_PARENT_OK){
+            // debug_log("user: child fork ok!");
+        }
+        else
+            error_log("fork fail in ipc between user processs");
+        return 0;
     }
-    return msg.mdata_response.pid;  // -1: error, child: 0, other: child_pid
+    else{
+        msg.type = MSG_MM_FORK_PARENT_OK;
+        ipc_send(msg.mdata_response.child_pid, &msg);
+        // debug_log("user: parent fork ok!");
+        return msg.mdata_response.child_pid;
+    }
 }

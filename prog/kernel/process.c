@@ -209,7 +209,11 @@ uint32_t sys_ipc_send(uint32_t dst_pid, Message* msg_ptr){
     PCB* receiver_pcb = pcb_table + dst_pid;
     ((Message*)get_process_phy_mem(sender_pid, (uint32_t)msg_ptr))->src_pid = sender_pid;
 
-    // printString("pid: ", -1);printInt32(sender_pid);printString(" send to pid: ", -1);printInt32(dst_pid);upRollScreen();
+    // // for debug 
+    // if(sender_pid == 6){
+    //     printString("pid: ", -1);printInt32(sender_pid);printString(" send to pid: ", -1);printInt32(dst_pid);upRollScreen();
+    //     printString("type: ", -1);printInt32(((Message*)get_process_phy_mem(sender_pid, (uint32_t)msg_ptr))->type);upRollScreen();
+    // }
 
     // receiver is wait for current process
     if(
@@ -249,6 +253,8 @@ uint32_t sys_ipc_send(uint32_t dst_pid, Message* msg_ptr){
 
 uint32_t sys_ipc_recv(uint32_t src_pid, Message* msg_ptr){
     PCB* sender_pcb = 0;
+    uint32_t sender_pid; // src_pid: PID_INT or PID_ANY or real_sender_pid
+                         // sender_pid: real sender pid
     if(src_pid != PID_ANY && src_pid != PID_INT){
         sender_pcb = pcb_table + src_pid;
     }
@@ -268,11 +274,13 @@ uint32_t sys_ipc_recv(uint32_t src_pid, Message* msg_ptr){
         // have message in queue and want get message from any process
         else if(src_pid == PID_ANY && receiver_pcb->message_queue){
             sender_pcb = receiver_pcb->message_queue;
+            sender_pid = sender_pcb - pcb_table;
             receiver_pcb->message_queue = sender_pcb->next_sender;
-            sender_pcb->message_ptr->src_pid = (sender_pcb - pcb_table);
+            ((Message*)get_process_phy_mem(sender_pid, (uint32_t)(sender_pcb->message_ptr)))->src_pid = sender_pid;
+            // sender_pcb->message_ptr->src_pid = (sender_pcb - pcb_table);
             memcpy(
                 (void*)get_process_phy_mem(receiver_pid, (uint32_t)msg_ptr),
-                (void*)get_process_phy_mem(src_pid, (uint32_t)(sender_pcb->message_ptr)),
+                (void*)get_process_phy_mem(sender_pid, (uint32_t)(sender_pcb->message_ptr)),
                 sizeof(Message)
             );
             sender_pcb->message_ptr = 0;
@@ -292,7 +300,9 @@ uint32_t sys_ipc_recv(uint32_t src_pid, Message* msg_ptr){
             previous_sender->next_sender = sender_pcb->next_sender;
         }
         sender_pcb->next_sender = 0;
-        sender_pcb->message_ptr->src_pid = (sender_pcb - pcb_table);
+        sender_pid = sender_pcb - pcb_table;
+        ((Message*)get_process_phy_mem(sender_pid, (uint32_t)(sender_pcb->message_ptr)))->src_pid = sender_pid;
+        // sender_pcb->message_ptr->src_pid = (sender_pcb - pcb_table);
         memcpy(
             (void*)get_process_phy_mem(receiver_pid, (uint32_t)msg_ptr),
             (void*)get_process_phy_mem(src_pid, (uint32_t)sender_pcb->message_ptr),

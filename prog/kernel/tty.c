@@ -5,6 +5,7 @@
 #include "global.h"
 #include "keyboard.h"
 #include "string.h"
+#include "debug.h"
 
 //local function
 void screen_out_char(int nr_tty, char ch);
@@ -54,6 +55,9 @@ void tty_read_loop(TTY *pt){
         have_input = keyboard_process(pt, &key, &shift, &ctrl, &alt, &make);
         if(have_input && (key != 0) && make == 1 && key >= '1' && key <= '9' && ctrl){//ctrl+1~9, switch tty
             switch_tty(key - '1');
+        }
+        else if(have_input && (key != 0) && make == 1 && key >= '0' && key <= '9' && alt){ // for debug (alt + pid), output process information
+            debug_print_process_info(key - '0');
         }
         else if(have_input && key ==ENTER && make == 1){//enter, roll up screen
             screen_roll_up(pt - tty_table);

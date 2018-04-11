@@ -169,6 +169,9 @@ void shell(){
             __asm__("hlt\n\t"::);
             while(1){}
         }
+        else if(cmd_len == 0){
+            continue;
+        }
         cmd_buf[cmd_len] = '\0';
 
         // printf("cmd size=%d\n", cmd_len);

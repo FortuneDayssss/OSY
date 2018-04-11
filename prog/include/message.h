@@ -15,6 +15,11 @@ typedef struct{
         uint32_t len;
         uint32_t pid;
         uint32_t file_stat_buf;
+        struct{
+            uint32_t is_parent;
+            uint32_t child_pid;
+            uint32_t parent_pid;
+        };
     };
 }MData_Response;
 
@@ -94,6 +99,10 @@ typedef struct{
 typedef struct{
     uint32_t dummy;
 }MData_MM_Fork_Child_OK;
+
+typedef struct{
+    uint32_t dummy;
+}MData_MM_Fork_Parent_OK;
 
 typedef struct{
     uint32_t status;
