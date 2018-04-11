@@ -54,15 +54,7 @@ int execv(const char *path, char * argv[]){
     msg.mdata_mm_exec.args_buf = (uint32_t)args_buf;
     msg.mdata_mm_exec.args_buf_len = args_buf_len;
 
-    // printf("user: before send exec msg\n");// 影响exec成功失败的log...todo!!!(因为影响了调度)
-    /*
-    todo:
-    子进程给MM发消息要求唤醒父进程时，MM处于阻塞状态，子进程就继续执行，直到发送exec
-    
-    ？？？现象：发送了exec消息，而MM接收不到来自子进程的exec消息
-    子进程发送exec消息时未将子进程加入到MM的message_queue里？？？
-    */
-
+    // printf("user: before send exec msg\n");
 	ipc_send(PID_MM, &msg);
     ipc_recv(PID_MM, &msg);
 
