@@ -154,6 +154,8 @@ void untar(char* tar_path){
 }
 
 void shell(){
+    for(int i = 0; i < 25; i++)
+        printf("\n");
     printf("SHELL START\n");
     char cmd_buf[64];
     char cmd_len;
@@ -243,6 +245,7 @@ void Init(){
                 break;
             case PID_MM:
                 mm_service_init_ok = 1;
+                debug_log("MM INIT OK!");
                 break;
             default:
                 break;

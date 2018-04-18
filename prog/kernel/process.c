@@ -277,7 +277,6 @@ uint32_t sys_ipc_recv(uint32_t src_pid, Message* msg_ptr){
             sender_pid = sender_pcb - pcb_table;
             receiver_pcb->message_queue = sender_pcb->next_sender;
             ((Message*)get_process_phy_mem(sender_pid, (uint32_t)(sender_pcb->message_ptr)))->src_pid = sender_pid;
-            // sender_pcb->message_ptr->src_pid = (sender_pcb - pcb_table);
             memcpy(
                 (void*)get_process_phy_mem(receiver_pid, (uint32_t)msg_ptr),
                 (void*)get_process_phy_mem(sender_pid, (uint32_t)(sender_pcb->message_ptr)),
@@ -302,7 +301,6 @@ uint32_t sys_ipc_recv(uint32_t src_pid, Message* msg_ptr){
         sender_pcb->next_sender = 0;
         sender_pid = sender_pcb - pcb_table;
         ((Message*)get_process_phy_mem(sender_pid, (uint32_t)(sender_pcb->message_ptr)))->src_pid = sender_pid;
-        // sender_pcb->message_ptr->src_pid = (sender_pcb - pcb_table);
         memcpy(
             (void*)get_process_phy_mem(receiver_pid, (uint32_t)msg_ptr),
             (void*)get_process_phy_mem(src_pid, (uint32_t)sender_pcb->message_ptr),
@@ -338,12 +336,16 @@ uint32_t sys_ipc_int_send(uint32_t dst_pid){
 }
 
 uint32_t get_process_phy_mem(uint32_t pid, uint32_t addr){
+    if(pid <= PID_INIT) // service and init process don't have ldt offset
+        return addr;
     Descriptor* ldt = &(pcb_table[pid].ldts[INDEX_LDT_MEMD]);
     uint32_t base = get_desc_base(ldt);
     return base + addr;
 }
 
 uint32_t get_process_vir_mem(uint32_t pid, uint32_t phy_addr){
+    if(pid < PID_INIT) // service and init process don't have ldt offset
+        return phy_addr;
     Descriptor* ldt = &(pcb_table[pid].ldts[INDEX_LDT_MEMD]);
     uint32_t base = get_desc_base(ldt);
     return phy_addr - base;

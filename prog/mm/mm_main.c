@@ -98,9 +98,9 @@ void mm_main(){
                 // debug_log("exec ok");
                 break;
             default:
-                error_log("mm got unsupported message");
-                printString("unsupported message type: ", -1);printInt32(msg.type);printString("\n", -1);
-                printString("unsupported message from: ", -1);printInt32(msg.src_pid);printString("\n", -1);
+                // error_log("mm got unsupported message");
+                // printString("unsupported message type: ", -1);printInt32(msg.type);printString("\n", -1);
+                // printString("unsupported message from: ", -1);printInt32(msg.src_pid);printString("\n", -1);
                 break;
         }
         memset(&msg, 0, sizeof(Message));
