@@ -1,5 +1,6 @@
 .vscode
 prog/.vscode
+out/*
 bochsout.txt
 *.img
 *.bak
