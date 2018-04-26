@@ -1,7 +1,3 @@
-###############################################################
-# bochsrc.bxrc file for Finix.
-###############################################################
-
 
 megs: 32
 
@@ -15,7 +11,8 @@ vgaromimage: file=bochsfiles/VGABIOS-lgpl-latest
 floppya: 1_44=a.img, status=inserted
 ata0-master: type=disk, path="c.img", mode=flat
 
-boot: floppy
+boot: floppy # boot from floppy
+#boot: c # boot from hard disk
 
 
 log: bochsout.txt

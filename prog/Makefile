@@ -11,7 +11,7 @@ ASMKFLAGS	= -I include/ -f elf
 CFLAGS		= -I include/ -c -fno-builtin -m32 -O0 -std=c99 -fno-stack-protector -fno-pie
 LDFLAGS		= -s -Ttext $(ENTRYPOINT) -m elf_i386
 
-OSBOOT		= boot/bootsec.bin boot/setup.bin
+OSBOOT		= boot/bootsec.bin boot/setup.bin boot/hdbootsec.bin
 OSKERNEL	= kernel.bin
 OBJS		= kernel/kernel.o \
 				kernel/clock.o \
@@ -66,6 +66,7 @@ buildimg:
 	dd if=boot/bootsec.bin of=../a.img bs=512 count=1 conv=notrunc
 	dd if=boot/setup.bin of=../a.img bs=512 count=3 seek=1 conv=notrunc
 	dd if=kernel.bin of=../a.img bs=512 count=$(SYSSECNUM) seek=`expr 1 + $(SETUPSECNUM)` conv=notrunc
+	dd if=boot/hdbootsec.bin of=../c.img bs=512 count=1 conv=notrunc
 
 crt:
 	ar rcs lib/osy_runtime.a lib/*.o
@@ -74,6 +75,9 @@ boot/bootsec.bin: boot/bootsec.asm
 	$(ASM) $(ASMBFLAGS) -o $@ $<
 
 boot/setup.bin: boot/setup.asm boot/include/macro.inc
+	$(ASM) $(ASMBFLAGS) -o $@ $<
+
+boot/hdbootsec.bin: boot/hdbootsec.asm
 	$(ASM) $(ASMBFLAGS) -o $@ $<
 
 $(OSKERNEL): $(OBJS)

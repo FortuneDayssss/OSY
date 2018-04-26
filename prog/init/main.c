@@ -104,10 +104,11 @@ void untar(char* tar_path){
     while(1){
         memset(buf, 0, sizeof(uint8_t) * 514);
         int head_len = read(tar_fd, buf, 512);
-        printString("head fname: ", -1);printString((char*)buf, 15);printString("\n", -1);
         if(head_len == 0 || buf[0] == 0){
+            printf("tar end...\n");
             break;
         }
+        printString("head fname: ", -1);printString((char*)buf, 15);printString("\n", -1);
         Tar_Header* th = (Tar_Header*)buf;
         char * cp = th->size;
 		int f_len = 0;
@@ -127,7 +128,8 @@ void untar(char* tar_path){
         // while(1){}
         file_fd = open(name_buf, O_CREATE | O_RDWR);
         if(tar_fd == -1){
-            printf("error: cannot open new file\n");
+            printf("error: cannot open new file [%s]\n", name_buf);
+            return;
         }
         int copied_len = 0;
 
@@ -154,8 +156,8 @@ void untar(char* tar_path){
 }
 
 void shell(){
-    for(int i = 0; i < 25; i++)
-        printf("\n");
+    // for(int i = 0; i < 25; i++)
+    //     printf("\n");
     printf("SHELL START\n");
     char cmd_buf[64];
     char cmd_len;

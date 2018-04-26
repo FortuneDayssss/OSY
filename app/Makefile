@@ -26,10 +26,10 @@ all: realclean everything
 final: all clean
 
 tar:
-	tar -cvf app.tar $(APPS) hello.txt
+	tar -cvf app.tar $(APPS) hello.txt kernel.bin setup.bin
 
 buildimg:
-	dd if=app.tar of=../c.img bs=512 seek=32768 count=60 conv=notrunc
+	dd if=app.tar of=../c.img bs=512 seek=32768 count=200 conv=notrunc
 
 clean:
 	rm -f $(OBJS)

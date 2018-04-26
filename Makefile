@@ -1,7 +1,9 @@
 
 
 
-.PHONY: all app os clean realclean run initrun refreshimg deletelog deleteimg deleteruntime projclean
+.PHONY: all app os clean realclean run initrun refreshimg deletelog deleteimg deleteruntime projclean default
+
+default: os app realclean run
 
 all: rebuildruntime os app realclean run
 
@@ -15,7 +17,7 @@ os:
 
 rebuildruntime:
 	(rm -f app/osy_runtime.a; cd prog; make all crt; cp lib/osy_runtime.a ../app; make realclean)
-
+	(rm -f app/kernel.bin app/setup.bin; cd prog; make all crt; cp kernel.bin ../app; cp boot/setup.bin ../app; make realclean)
 clean:
 	(cd app; make clean)
 	(cd prog; make clean)
