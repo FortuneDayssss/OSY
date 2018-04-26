@@ -1,7 +1,7 @@
 
 
 
-.PHONY: all app os clean realclean run initrun refreshimg deletelog deleteimg deleteruntime projclean default
+.PHONY: all app os clean realclean run initrun refreshimg deletelog deleteimg deleteruntime projclean runhd default
 
 default: os app realclean run
 
@@ -16,8 +16,9 @@ os:
 	(cd prog; make final buildimg)
 
 rebuildruntime:
-	(rm -f app/osy_runtime.a; cd prog; make all crt; cp lib/osy_runtime.a ../app; make realclean)
-	(rm -f app/kernel.bin app/setup.bin; cd prog; make all crt; cp kernel.bin ../app; cp boot/setup.bin ../app; make realclean)
+	(rm -f app/osy_runtime.a; cd prog; make all crt; cp lib/osy_runtime.a ../app)
+	(rm -f app/kernel.bin app/setup.bin; cd prog; make all crt; cp kernel.bin ../app; cp boot/setup.bin ../app)
+
 clean:
 	(cd app; make clean)
 	(cd prog; make clean)
@@ -35,6 +36,9 @@ refreshimg:
 
 run:
 	bochs -q
+
+runhd:
+	bochs -q -f bochsrc_hd
 
 deletelog:
 	rm -f bochsout.txt

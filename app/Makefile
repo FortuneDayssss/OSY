@@ -21,7 +21,7 @@ APPS	=	cat \
 
 everything: $(OBJS) $(APPS)
 
-all: realclean everything
+all: everything
 
 final: all clean
 
@@ -35,7 +35,7 @@ clean:
 	rm -f $(OBJS)
 
 realclean:
-	rm -f $(OBJS) $(APPS) app.tar
+	rm -f $(OBJS) $(APPS) app.tar setup.bin kernel.bin
 
 cat: cat.o start.o osy_runtime.a
 	$(LD) $(LDFLAGS) -o $@ $^

@@ -18,7 +18,8 @@ SUPER_BLOCK_ROOT_SECS_OFFSET    equ     20
 
 DIR_ENTRY_LEN                   equ     64
 DIR_ENTRY_FILENAME_OFFSET       equ     4
-ROOT_DIR_ENTRY_LIST_LEN         equ     16      ;max length in 2 sector
+ROOT_DIR_ENTRY_LIST_LEN         equ     32      ;max length in 4 sector
+ROOT_DIR_ENTRY_LIST_SEC_NR      equ     4       ;default sector number = 4
 
 INODE_LEN                       equ     32
 INODE_START_SEC_OFFSET          equ     8
@@ -69,9 +70,7 @@ COPY_BOOTSEC_OK:
     mov     eax,    [fs : BUFFER_ADDR]
     cmp     eax,    FS_OSY_MAGIC_V1
     jz      FS_EXIST
-    ;mov word    [ds : StringAddr],  ERROR_MSG_FS_NOT_EXIST
-    ;mov word    [ds : StringLen],   ERROR_MSG_FS_NOT_EXIST_LEN
-    ;call    print_error
+    call    error
 FS_EXIST:
     xor     eax,    eax
     add     eax,    2       ; boot sector, super block
@@ -79,9 +78,9 @@ FS_EXIST:
     add     eax,    [fs : BUFFER_ADDR + SUPER_BLOCK_SMAP_SEC_NR_OFFSET]
     mov dword   [ds : INodeListStartSectorNr],  eax
 
-    ; load root sectors (num = 2) to 0x00010000
+    ; load root sectors (default num = 4) to 0x00010000
     mov     eax,    [fs : BUFFER_ADDR + SUPER_BLOCK_ROOT_SECS_OFFSET]
-    mov byte    [ds : BlockNum],    2
+    mov byte    [ds : BlockNum],    ROOT_DIR_ENTRY_LIST_SEC_NR
     mov dword   [ds : LBALow],      eax
     call    read_sector
 
@@ -103,9 +102,7 @@ find_setup_loop:
     mov     ax,     cx
     mov     ds,     ax
     mov     es,     ax
-    ;mov word    [ds : StringAddr],  ERROR_MSG_FS_NOT_EXIST  ;;todo: new error msg
-    ;mov word    [ds : StringLen],   ERROR_MSG_FS_NOT_EXIST_LEN
-    ;call    print_error
+    call    error
 find_setup_ok:
     sub     si,     DIR_ENTRY_FILENAME_OFFSET
     mov     eax,    [ds : si]
@@ -125,9 +122,7 @@ find_kernel_loop:
     mov     ax,     cx
     mov     ds,     ax
     mov     es,     ax
-    ;mov word    [ds : StringAddr],  ERROR_MSG_FS_NOT_EXIST  ;;todo: new error msg
-    ;mov word    [ds : StringLen],   ERROR_MSG_FS_NOT_EXIST_LEN
-    ;call    print_error
+    call    error
 find_kernel_ok:
     sub     si,     DIR_ENTRY_FILENAME_OFFSET
     mov     eax,    [ds : si]
@@ -178,11 +173,7 @@ find_kernel_ok:
     call    read_sector
 
     
-PRINT_BOOT_SUCCESS:
-    ;mov word    [ds : StringAddr],  MSG1
-    ;mov word    [ds : StringLen],   MSG1_LEN
-    ;call    print_string
-    
+BOOT_SUCCESS:
     ;hide cursor
     mov     ah,     01h
     mov     cx,     0706h
@@ -227,26 +218,9 @@ read_sector:
     int     13h
     ret
 
-;print_string:
-;    ;get cursor position
-;    mov     ah,     03h
-;    xor     bh,     bh
-;    int     10h
-;    
-;    ;print
-;	mov	    bp,     [ds : StringAddr]
-;	mov	    cx,     [ds : StringLen]
-;	mov	    ax,     1301h
-;	mov	    bx,     7h
-;	mov	    dl,     0
-;	int	    10h
-;	ret
-
-;print_error:
-;    call    print_string
-;    mov     eax,    0FEFEFEFEh
-;ERROR_LOOP:
-;    jmp     ERROR_LOOP
+error:
+ERROR_LOOP:
+    jmp     ERROR_LOOP
 
 ;----------data--------------------------------------------------
 DiskAddressPacket   equ     8c00h
@@ -272,16 +246,6 @@ SetupFileNameLen    equ 10
 KernelFileName      db  "kernel.bin", 0
 KernelFileNameLen   equ 11
 
-
-;MSG1:
-;    db      "boot success!"
-;    db      0dh,    0ah
-;MSG1_LEN    equ     $ - MSG1
-
-;ERROR_MSG_FS_NOT_EXIST:
-;    db      "file system is not exist..."
-;    db      0dh,    0ah
-;ERROR_MSG_FS_NOT_EXIST_LEN   equ $ - ERROR_MSG_FS_NOT_EXIST
 
 BOOT_FLAG:
     times   510 - ($ - $$)  db  0
