@@ -51,34 +51,26 @@ void init_kernel(){
         if(memdata->table[i].type == MEM_DATA_FROM_BIOS_TYPE_AVAILABLE){
             uint32_t base = memdata->table[i].base_low;
             uint32_t len = memdata->table[i].length_low;
-            uint32_t* pte = (&kernel_page_table->pte[base >> 12]);
-            for(int i = 0; i < len && (pte <= &(kernel_page_table->pte[1024 * 1024])); i+=0x1000){ // step = page_size = 4k = 2^12                
-                *(pte) &= (~PTE_OSY_TYPE_MASK);
-                *(pte) |= PTE_OSY_TYPE_AVAILABLE;
-                pte++;
-            }
-        }
-    }
 
-    // init page dir table
-    uint32_t have_least_one_page;
-    for(uint32_t i = 0; i < 1024; i++){
-        uint32_t* pde = &(kernel_page_table->pde[i]);
-        uint32_t* pte_table = (uint32_t*)((*pde) & PDE_BASE_ADDR_MASK);
-        have_least_one_page = 0;
-        for(uint32_t j = 0; j < 1024; j++){
-            uint32_t pte = pte_table[j];
-            uint32_t line_addr = ((i << 22) & 0xFFC00000) | ((j << 12) & 0x03FF000);
-            uint32_t phy_addr = pte & PTE_BASE_ADDR_MASK;
-            
-            if((pte & PTE_OSY_TYPE_MASK) == PTE_OSY_TYPE_AVAILABLE){
-                have_least_one_page = 1;
-            }
-        }
+            for(int pde_nr = 0; pde_nr < 1024; pde_nr++){ // scan pde table
+                uint32_t pde_base = pde_nr << 22;
+                uint32_t pde_end = ((pde_nr + 1) << 22) - 1;
+                if(pde_end >= base && pde_base <= (base + len)){ // have any memory in the range
+                    uint32_t* pte_table = (uint32_t*)((kernel_page_table->pde[pde_nr]) & PDE_BASE_ADDR_MASK);
+                    for(int pte_nr = 0; pte_nr < 1024; pte_nr++){ // scan pte table
+                        uint32_t pte_base = pde_base + (pte_nr << 12);
+                        uint32_t pte_end = pde_base + ((pte_nr + 1) << 12);
+                        if(pte_base >= base && pte_end <= (base + len)){ // if all mem in pte is in the range, set pte and pde available
+                            pte_table[pte_nr] &= (~PTE_OSY_TYPE_MASK);
+                            pte_table[pte_nr] |= (PTE_OSY_TYPE_AVAILABLE);
+                            
+                            (kernel_page_table->pde[pde_nr]) &= (~PDE_OSY_TYPE_MASK);
+                            (kernel_page_table->pde[pde_nr]) |= (PDE_OSY_TYPE_AVAILABLE);
+                        } // end if
+                    }// end scan pte loop
+                }// end if
+            }// end scan pde loop
 
-        if(have_least_one_page){
-            *(pde) &= (~PDE_OSY_TYPE_MASK);
-            *(pde) |= PDE_OSY_TYPE_AVAILABLE;            
         }
     }
     printString("page table init ok\n", -1);
