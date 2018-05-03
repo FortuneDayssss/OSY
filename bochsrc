@@ -1,5 +1,5 @@
 
-megs: 32
+megs: 2048 # memory size(MB)
 
 
 #romimage: file=/usr/local/share/bochs/BIOS-bochs-latest
