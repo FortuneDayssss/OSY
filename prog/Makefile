@@ -16,11 +16,9 @@ OSKERNEL	= kernel.bin
 OBJS		= kernel/kernel.o \
 				kernel/clock.o \
 				kernel/global.o \
-				kernel/hd.o \
+				hd/hd.o \
 				kernel/process.o \
 				kernel/keyboard.o \
-				kernel/tty.o \
-				kernel/printk.o \
 				kernel/debug.o \
 				init/main.o \
 				init/init.o \
@@ -43,7 +41,9 @@ OBJS		= kernel/kernel.o \
 				fs/open.o \
 				fs/path.o \
 				fs/read_write.o \
-				mm/mm_main.o
+				mm/mm_main.o \
+				tty/tty.o \
+				tty/screen.o
 
 .PHONY: everything final image clean realclean disasm all buildimg crt
 
@@ -92,19 +92,13 @@ kernel/clock.o: kernel/clock.c
 kernel/global.o: kernel/global.c
 	$(CC) $(CFLAGS) -o $@ $<
 
-kernel/hd.o: kernel/hd.c
+hd/hd.o: hd/hd.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 kernel/process.o: kernel/process.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 kernel/keyboard.o: kernel/keyboard.c
-	$(CC) $(CFLAGS) -o $@ $<
-
-kernel/tty.o: kernel/tty.c
-	$(CC) $(CFLAGS) -o $@ $<
-
-kernel/printk.o: kernel/printk.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 kernel/debug.o: kernel/debug.c
@@ -174,4 +168,10 @@ fs/read_write.o: fs/read_write.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 mm/mm_main.o: mm/mm_main.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+tty/tty.o: tty/tty.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+tty/screen.o: tty/screen.c
 	$(CC) $(CFLAGS) -o $@ $<

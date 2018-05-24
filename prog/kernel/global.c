@@ -59,7 +59,7 @@ uint32_t dd_map[] = {
 system_call_handler system_call_table[SYSTEM_CALL_NUM] = {
     (system_call_handler)0,
     (system_call_handler)0,
-    (system_call_handler)sys_tty_write,
+    (system_call_handler)0,    
     (system_call_handler)sys_ipc_send,
     (system_call_handler)sys_ipc_recv,
     0

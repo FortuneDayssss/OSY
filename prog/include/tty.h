@@ -50,6 +50,11 @@ typedef struct{
 
 void tty_main();
 
-uint32_t sys_tty_write(uint8_t* buf, uint32_t size);
+// screen
+void screen_out_char(int nr_tty, char ch);
+void screen_roll_up(int nr_tty);
+void screen_set_cursor(uint32_t pos);
+void screen_set_base_addr(uint32_t addr);
+void screen_flush(TTY_Console *pc);
 
 #endif
