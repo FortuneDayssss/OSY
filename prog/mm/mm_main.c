@@ -109,7 +109,7 @@ void mm_main(){
 
 
 uint32_t do_fork(Message* msg){
-    __asm__("cli\n\t"::);
+    // __asm__("cli\n\t"::);
     uint32_t parent_pid = msg->src_pid;
     
     // find an available pcb
@@ -167,7 +167,7 @@ uint32_t do_fork(Message* msg){
     sys_ipc_send(PID_FS, &msg_to_fs);
     sys_ipc_recv(PID_FS, &msg_to_fs);
 
-    __asm__("sti\n\t"::);
+    // __asm__("sti\n\t"::);
     return child_pid;
 }
 
